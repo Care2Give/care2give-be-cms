@@ -3,6 +3,7 @@ from ._base import BaseResponse
 from pydantic import BaseModel, EmailStr, Field, SecretStr
 
 __all__ = [
+    'AccessTokenResponse',
     'TokenResponse',
     'User',
     'UserConfirmationCode',
@@ -37,8 +38,12 @@ class UserRegistrationResponse(BaseResponse):
 class UserRefreshToken(BaseModel):
     refresh_token: str
 
-class UserToken(UserRefreshToken):
+class UserAccessToken(BaseModel):
     access_token: str
 
-class TokenResponse(BaseResponse, UserToken):
+class AccessTokenResponse(BaseResponse, UserAccessToken):
     pass
+
+class TokenResponse(BaseResponse):
+    access_token: str
+    refresh_token: str

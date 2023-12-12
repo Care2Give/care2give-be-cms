@@ -1,7 +1,7 @@
 from typing import Annotated
 from dependencies.auth_policy import DEFAULT_ROLE, AuthPolicy
 from dependencies.cognito import CognitoProvider
-from models import BaseResponse, UserRegistrationDetails, UserRegistrationResponse, UserConfirmationCode, UserLoginDetails, TokenResponse, User, UserRefreshToken
+from models import BaseResponse, UserRegistrationDetails, UserRegistrationResponse, UserConfirmationCode, UserLoginDetails, TokenResponse, User, UserRefreshToken, AccessTokenResponse
 from fastapi import APIRouter, Depends, Request, Response
 
 router = APIRouter(
@@ -34,10 +34,14 @@ async def login(request: Request, user_details: UserLoginDetails, cognito: Annot
     )
 
 @router.post('/refresh')
-async def refresh_token(request: Request, authed: Annotated[AuthPolicy, Depends(AuthPolicy.get_authorized_user)], details: UserRefreshToken, cognito: Annotated[CognitoProvider, Depends(CognitoProvider)]):
-    response = await cognito.renew_token(authed.get_user(), details.refresh_token, request)
-    return BaseResponse(status="SUCCESS")
-
+async def refresh_token(request: Request, user: Annotated[User, Depends(AuthPolicy.get_authenticated_user)], details: UserRefreshToken, cognito: Annotated[CognitoProvider, Depends(CognitoProvider)], response: Response):
+    result = await cognito.renew_token(user, details.refresh_token, request)
+    authentication_result = result.get('AuthenticationResult')
+    response.set_cookie('session', authentication_result.get('IdToken', ''))
+    return AccessTokenResponse(
+        status="SUCCESS",
+        access_token=authentication_result.get('AccessToken', '')
+    )
 
 @router.get('/authorized')
 async def check_authorized(authed: Annotated[AuthPolicy, Depends(AuthPolicy.get_authorized_user)]):

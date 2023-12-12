@@ -106,13 +106,13 @@ class CognitoProvider:
                 AuthFlow='REFRESH_TOKEN_AUTH',
                 AuthParameters={
                     'REFRESH_TOKEN': refresh_token,
-                    'SECRET_HASH': self.__get_secret_hash(user.email)
+                    'SECRET_HASH': self.__get_secret_hash(user.username)
                 },
                 ContextData=self.__get_request_context(request)
             )
             return response
         except self.client.exceptions.NotAuthorizedException:
-            raise ApplicationException(ApplicationError(kind='CREDENTIALS_INVALID', message='Incorrect username or password'))
+            raise ApplicationException(ApplicationError(kind='REFRESH_TOKEN_INVALID', message='Incorrect refresh token'))
         except Exception:
             raise _UNKNOWN_EXC
 
