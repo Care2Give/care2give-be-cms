@@ -1,10 +1,10 @@
 from jwt.algorithms import RSAAlgorithm
 from typing import Union
-from urllib.request import urlopen
 import boto3
 import json
 import jwt
 import os
+import requests
 
 SESSION: Union[boto3.Session, None] = None
 REGION_NAME = os.environ.get('AWS_DEFAULT_REGION')
@@ -27,8 +27,8 @@ def get_session() -> boto3.Session:
 
 def get_signing_keys():
     global KEYS
-    response = urlopen(KEYS_URL)
-    keys = json.loads(response.read()).get('keys', {})
+    response = requests.get(KEYS_URL)
+    keys = json.loads(response.content).get('keys', {})
     KEYS = {}
     for key in keys:
         KEYS[key['kid']] = key

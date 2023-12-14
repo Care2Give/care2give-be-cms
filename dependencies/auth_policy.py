@@ -52,11 +52,15 @@ class AuthPolicy:
             decoded = decode_cognito_token(session)
             if decoded is None:
                 raise _UNAUTHORIZED_EXC
+
             cognito = CognitoProvider()
-            user_details = await cognito.get_user(decoded.get('sub'))
+            user_details = await cognito.get_user(decoded.get('cognito:username'))
+            if user_details is None:
+                raise _UNAUTHORIZED_EXC
+
             auth_policy = AuthPolicy(user_details)
             user = auth_policy.get_user()
-        except Exception:
+        except:
             raise _UNAUTHORIZED_EXC
         return user
 

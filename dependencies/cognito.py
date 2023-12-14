@@ -1,20 +1,39 @@
 from models import User
-from utils.aws import CLIENT_ID, CLIENT_SECRET, POOL_ID, get_role_group, get_session
+from utils.aws import CLIENT_ID, CLIENT_SECRET, POOL_ID, REGION_NAME, get_role_group, get_session
 from utils.exception import ApplicationError, ApplicationException
 from fastapi import Request
 from mypy_boto3_cognito_idp import CognitoIdentityProviderClient
-from mypy_boto3_cognito_idp.type_defs import AdminGetUserResponseTypeDef, AdminInitiateAuthResponseTypeDef, ContextDataTypeTypeDef, SignUpResponseTypeDef
+from mypy_boto3_cognito_idp.type_defs import AdminGetUserResponseTypeDef, AdminInitiateAuthResponseTypeDef, ContextDataTypeTypeDef, ListUsersResponseTypeDef, SignUpResponseTypeDef, UserTypeTypeDef
+from typing import Optional, TypedDict
 import base64
 import hashlib
 import hmac
+import requests
 
 # Exceptions
 # TODO: Consolidate common exceptions
 _UNKNOWN_EXC = ApplicationException(ApplicationError(kind='UNKNOWN', message='Unknown error occurred'))
+COGNITO_OAUTH_EP = ''
+
+class CognitoOAuthTokenResponse(TypedDict):
+    id_token: str
+    access_token: str
+    refresh_token: str
+    expires_in: int
+    token_type: str
 
 class CognitoProvider:
     def __init__(self):
+        global COGNITO_OAUTH_EP
         self.client: CognitoIdentityProviderClient = get_session().client('cognito-idp')
+        if not COGNITO_OAUTH_EP:
+            pool_info = self.client.describe_user_pool(UserPoolId=POOL_ID).get('UserPool')
+            if pool_info.get('CustomDomain'):
+                # TODO: To be implemented
+                pass
+            elif pool_info.get('Domain'):
+                domain = pool_info.get('Domain')
+                COGNITO_OAUTH_EP = f'https://{domain}.auth.{REGION_NAME}.amazoncognito.com'
 
     async def register_user(self, email: str, password: str, first_name: str, last_name: str, role: str) -> SignUpResponseTypeDef:
         try:
@@ -88,14 +107,50 @@ class CognitoProvider:
         except Exception:
             raise _UNKNOWN_EXC
 
-    async def get_user(self, user_id: str) -> AdminGetUserResponseTypeDef:
+    async def login_user_from_oauth(self, code: str, redirect_uri: str) -> CognitoOAuthTokenResponse:
+        client_id_secret = base64.b64encode(f'{CLIENT_ID}:{CLIENT_SECRET}'.encode('utf-8')).decode()
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': f'Basic {client_id_secret}'
+        }
+        payload = {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': redirect_uri
+        }
+        response = requests.post(COGNITO_OAUTH_EP + '/oauth2/token', data=payload, headers=headers)
+        tokens: CognitoOAuthTokenResponse = response.json()
+        return tokens
+
+    async def get_user(self, user_id: str) -> Optional[AdminGetUserResponseTypeDef]:
+        """
+        Gets user by user ID
+        User ID can either be email or the cognito:username property in the Cognito user pool
+        Only Cognito native users can be retrieved by email
+        Non-native users (from external providers) can only be retrieved by cognito:username property
+        """
         try:
             response = self.client.admin_get_user(
                 UserPoolId=POOL_ID,
                 Username=user_id
             )
             return response
+        except self.client.exceptions.UserNotFoundException:
+            return None
         except:
+            raise _UNKNOWN_EXC
+
+    async def find_user_by_email(self, email: str) -> Optional[UserTypeTypeDef]:
+        try:
+            response = self.client.list_users(
+                UserPoolId=POOL_ID,
+                AttributesToGet=['email', 'given_name', 'family_name'],
+                Limit=1,
+                Filter=f'email="{email}"'
+            )
+            user = response.get('Users', [])
+            return user[0] if len(user) > 0 else None
+        except Exception:
             raise _UNKNOWN_EXC
 
     async def renew_token(self, user: User, refresh_token: str, request: Request):
