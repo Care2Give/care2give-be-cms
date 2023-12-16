@@ -24,6 +24,10 @@ resource "aws_cognito_user_pool" "care2give" {
     }
   }
 
+  lambda_config {
+    pre_sign_up = aws_lambda_function.presignup_hook.arn
+  }
+
   schema {
     name                     = "email"
     attribute_data_type      = "String"
@@ -52,7 +56,7 @@ resource "aws_cognito_user_pool" "care2give" {
     name                     = "family_name"
     attribute_data_type      = "String"
     mutable                  = true
-    required                 = true
+    required                 = false
     developer_only_attribute = false
     string_attribute_constraints {
       min_length = 1
@@ -73,23 +77,88 @@ resource "aws_cognito_user_pool" "care2give" {
   }
 }
 
-# resource "aws_cognito_identity_provider" "google" {
-#   user_pool_id  = aws_cognito_user_pool.care2give.id
-#   provider_name = "Google"
-#   provider_type = "Google"
-#
-#   provider_details = {
-#     authorize_scopes = "email"
-#     client_id        = var.google_client_id
-#     client_secret    = var.google_client_secret
-#   }
-#
-#   attribute_mapping = {
-#     email    = "email"
-#     username = "email"
-#   }
-# }
+resource "aws_cognito_identity_provider" "google" {
+  user_pool_id  = aws_cognito_user_pool.care2give.id
+  provider_name = "Google"
+  provider_type = "Google"
 
+  provider_details = {
+    authorize_scopes = "openid profile email"
+    client_id        = var.google_client_id
+    client_secret    = var.google_client_secret
+  }
+
+  attribute_mapping = {
+    username    = "sub"
+    email       = "email"
+    given_name  = "given_name"
+    family_name = "family_name"
+  }
+}
+
+resource "aws_cognito_user_pool_domain" "care2give" {
+  domain       = "care2give"
+  user_pool_id = aws_cognito_user_pool.care2give.id
+}
+
+resource "aws_cognito_user_pool_client" "client" {
+  name                          = "Care2Give BE CMS"
+  user_pool_id                  = aws_cognito_user_pool.care2give.id
+  generate_secret               = true
+  explicit_auth_flows           = ["ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_ADMIN_USER_PASSWORD_AUTH"]
+  access_token_validity         = 15
+  id_token_validity             = 180
+  refresh_token_validity        = 3
+  prevent_user_existence_errors = "ENABLED"
+  token_validity_units {
+    access_token  = "minutes"
+    id_token      = "minutes"
+    refresh_token = "days"
+  }
+  callback_urls                        = [format("%s%s", var.server_uri, var.oauth_callback_path)]
+  allowed_oauth_flows_user_pool_client = true
+  allowed_oauth_flows                  = ["code"]
+  allowed_oauth_scopes                 = ["openid", "profile", "email"]
+  supported_identity_providers         = ["Google"]
+  depends_on = [
+    aws_cognito_identity_provider.google
+  ]
+}
+
+resource "aws_iam_policy" "user_policy" {
+  name = "care2give_backend_api"
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+        {
+            "Effect" : "Allow",
+            "Action" : [
+                "cognito-idp:AdminAddUserToGroup",
+                "cognito-idp:AdminDisableUser",
+                "cognito-idp:AdminEnableUser",
+                "cognito-idp:AdminGetUser",
+                "cognito-idp:AdminInitiateAuth",
+                "cognito-idp:AdminRemoveUserFromGroup",
+                "cognito-idp:AdminRespondToAuthChallenge",
+                "cognito-idp:AdminUpdateUserAttributes",
+                "cognito-idp:ChangePassword",
+                "cognito-idp:ConfirmForgotPassword",
+                "cognito-idp:ConfirmSignUp",
+                "cognito-idp:DescribeUserPool",
+                "cognito-idp:ForgotPassword",
+                "cognito-idp:GlobalSignOut",
+                "cognito-idp:ListGroups",
+                "cognito-idp:ListUsers",
+                "cognito-idp:ListUsersInGroup",
+                "cognito-idp:ResendConfirmationCode",
+                "cognito-idp:RevokeToken",
+                "cognito-idp:SignUp"
+            ],
+            "Resource" : "arn:aws:cognito-idp:${var.aws_region}:${data.aws_caller_identity.current.account_id}:userpool/${aws_cognito_user_pool.care2give.id}"
+      }
+    ]
+  })
+}
 // Precedence is lower better by default.
 // Set higher privilege to higher precedence to favour
 // lower privilege level more if multiple groups are

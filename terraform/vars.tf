@@ -20,16 +20,31 @@ provider "aws" {
   region     = var.aws_region
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
+  default_tags {
+    tags = {
+      Name = "care2give"
+    }
+  }
 }
 
-# variable "google_client_id" {
-#   type        = string
-#   sensitive   = true
-#   description = "Google Client ID"
-# }
-#
-# variable "google_client_secret" {
-#   type        = string
-#   sensitive   = true
-#   description = "Google Client Secret"
-# }
+variable "google_client_id" {
+  type        = string
+  sensitive   = true
+  description = "Google Client ID"
+}
+
+variable "google_client_secret" {
+  type        = string
+  sensitive   = true
+  description = "Google Client Secret"
+}
+
+variable "server_uri" {
+  type    = string
+  default = "https://localhost:8000"
+}
+
+variable "oauth_callback_path" {
+  type    = string
+  default = "/api/v1/auth/oauth2/callback/cognito"
+}
