@@ -7,12 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from mangum import Mangum
 
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    init()
-    yield
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 @app.get("/")
 def read_root():

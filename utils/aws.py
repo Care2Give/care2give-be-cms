@@ -26,18 +26,6 @@ def get_session() -> boto3.Session:
         SESSION = boto3.Session(**session_opts)
     return SESSION
 
-def init():
-    global COGNITO_OAUTH_EP
-    if COGNITO_OAUTH_EP == '':
-        client = get_session().client('cognito-idp')
-        pool_info = client.describe_user_pool(UserPoolId=POOL_ID).get('UserPool')
-        if pool_info.get('CustomDomain'):
-            # TODO: To be implemented
-            pass
-        elif pool_info.get('Domain'):
-            domain = pool_info.get('Domain')
-            COGNITO_OAUTH_EP = f'https://{domain}.auth.{REGION_NAME}.amazoncognito.com'
-
 def get_signing_keys():
     global KEYS
     response = requests.get(KEYS_URL)
@@ -77,3 +65,19 @@ ROLE_GROUP_MAP = {
 
 def get_role_group(role: str):
     return ROLE_GROUP_MAP[role]
+
+# Force init
+def init():
+    global COGNITO_OAUTH_EP
+    if COGNITO_OAUTH_EP == '':
+        client = get_session().client('cognito-idp')
+        pool_info = client.describe_user_pool(UserPoolId=POOL_ID).get('UserPool')
+        if pool_info.get('CustomDomain'):
+            # TODO: To be implemented
+            pass
+        elif pool_info.get('Domain'):
+            domain = pool_info.get('Domain')
+            COGNITO_OAUTH_EP = f'https://{domain}.auth.{REGION_NAME}.amazoncognito.com'
+
+if __name__ != '__main__':
+    init()
