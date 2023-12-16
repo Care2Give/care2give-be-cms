@@ -1,12 +1,12 @@
 from models import BaseResponse, UserRegistrationDetails, UserRegistrationResponse, UserConfirmationCode, UserLoginDetails, User, UserRefreshToken
-from utils.aws import COGNITO_OAUTH_EP, construct_cognito_oauth_url
+from utils.aws import construct_cognito_oauth_url
 from utils.constants import SERVER_URI
-from utils.exception import Generic
+from utils.exception import Auth, Generic
 from dependencies.auth_policy import DEFAULT_ROLE, AuthPolicy
 from dependencies.cognito import CognitoProvider
 from enum import Enum
 from datetime import datetime, timedelta, UTC
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Cookie, Depends, Response
 from fastapi.responses import RedirectResponse
 from googleapiclient import discovery
 from starlette.requests import Request
@@ -33,6 +33,11 @@ def set_auth_cookie(response: Response, cookie_type: AuthCookieType, id_token: s
     elif cookie_type == AuthCookieType.REFRESH:
         expires += timedelta(days=3)
     response.set_cookie(cookie_type.value, id_token, httponly=httponly, samesite='strict', expires=expires)
+
+def unset_auth_cookies(response: Response):
+    response.set_cookie(AuthCookieType.SESSION.value, '', httponly=True, samesite='strict', max_age=0)
+    response.set_cookie(AuthCookieType.REFRESH.value, '', httponly=True, samesite='strict', max_age=0)
+    response.set_cookie(AuthCookieType.ACCESS.value, '', samesite='strict', max_age=0)
 
 def get_cognito_oauth_callback_url():
     return f'{SERVER_URI}/api/v1{router.url_path_for("oauth_callback_cognito")}'
@@ -81,14 +86,33 @@ async def oauth_callback_cognito(request: Request, response: Response, cognito: 
     if code is None:
         raise Generic.BAD_REQUEST.value
     tokens = await cognito.login_user_from_oauth(code, f'{request.url.scheme}://{request.url.netloc}{request.url.path}')
-    # TODO: Link with existing user if available, otherwise proactively create and link
     user = await AuthPolicy.get_authenticated_user(tokens.get('id_token'))
+    if not user.verified:
+        # We trust the external provider to be
+        # an attester that user has control of email
+        await cognito.set_user_email_verified(user)
+        await cognito._add_user_to_group(user.username, user.role)
+
     set_auth_cookie(response, AuthCookieType.SESSION, tokens.get('id_token', ''))
     set_auth_cookie(response, AuthCookieType.ACCESS, tokens.get('access_token', ''))
     set_auth_cookie(response, AuthCookieType.REFRESH, tokens.get('refresh_token', ''))
     response.status_code = 307
     response.headers['location'] = f'{request.url.scheme}://{request.url.netloc}'
     return BaseResponse(status='SUCCESS')
+
+@router.get('/signout')
+async def signout(response: Response, cognito: Annotated[CognitoProvider, Depends(CognitoProvider)], session: Annotated[Optional[str], Cookie()] = None):
+    if session is None:
+        raise Auth.UNAUTHORIZED.value
+
+    try:
+        await cognito.revoke_token(session)
+    except:
+        # Ignore errors, refresh token likely already invalid
+        pass
+
+    unset_auth_cookies(response)
+    return BaseResponse(status="SUCCESS")
 
 # --- START - FOR KEEPSAKE ---
 def get_google_oauth_redirect_uri():

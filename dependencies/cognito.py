@@ -3,8 +3,8 @@ from utils.aws import CLIENT_ID, CLIENT_SECRET, COGNITO_OAUTH_EP, POOL_ID, get_r
 from utils.exception import Auth, Generic
 from fastapi import Request
 from mypy_boto3_cognito_idp import CognitoIdentityProviderClient
-from mypy_boto3_cognito_idp.type_defs import AdminGetUserResponseTypeDef, AdminInitiateAuthResponseTypeDef, ContextDataTypeTypeDef, ListUsersResponseTypeDef, SignUpResponseTypeDef, UserTypeTypeDef
-from typing import Optional, TypedDict
+from mypy_boto3_cognito_idp.type_defs import AdminGetUserResponseTypeDef, AdminInitiateAuthResponseTypeDef, AttributeTypeTypeDef, ContextDataTypeTypeDef, SignUpResponseTypeDef, UserTypeTypeDef
+from typing import Optional, Sequence, TypedDict
 import base64
 import hashlib
 import hmac
@@ -28,31 +28,9 @@ class CognitoProvider:
                 SecretHash=self.__get_secret_hash(email),
                 Username=email,
                 Password=password,
-                UserAttributes=[
-                    {
-                        'Name': 'email',
-                        'Value': email
-                    },
-                    {
-                        'Name': 'given_name',
-                        'Value': first_name
-                    },
-                    {
-                        'Name': 'family_name',
-                        'Value': last_name
-                    },
-                    {
-                        'Name': 'custom:role',
-                        'Value': role
-                    }
-                ]
+                UserAttributes=self.__construct_user_attributes(email, first_name, last_name, role)
             )
-
-            self.client.admin_add_user_to_group(
-                UserPoolId=POOL_ID,
-                Username=response.get('UserSub'),
-                GroupName=get_role_group(role)
-            )
+            await self._add_user_to_group(response.get('UserSub'), role)
 
             return response
         except self.client.exceptions.UsernameExistsException:
@@ -157,6 +135,48 @@ class CognitoProvider:
         except Exception:
             raise Generic.UNKNOWN.value
 
+    async def revoke_token(self, refresh_token: str):
+        try:
+            self.client.revoke_token(
+                Token=refresh_token,
+                ClientId=CLIENT_ID,
+                ClientSecret=CLIENT_SECRET
+            )
+        except self.client.exceptions.UnauthorizedException:
+            pass
+        except Exception:
+            raise Generic.UNKNOWN.value
+
+    async def set_user_email_verified(self, user: User):
+        try:
+            self.client.admin_update_user_attributes(
+                UserPoolId=POOL_ID,
+                Username=user.username,
+                UserAttributes=[{'Name': 'email_verified', 'Value': 'true'}]
+            )
+        except Exception:
+            raise Generic.UNKNOWN.value
+
+    async def resend_confirmation_code(self, user: User):
+        try:
+            self.client.resend_confirmation_code(
+                ClientId=CLIENT_ID,
+                Username=user.username,
+                SecretHash=self.__get_secret_hash(user.username)
+            )
+        except Exception:
+            raise Generic.UNKNOWN.value
+
+    async def _add_user_to_group(self, username: str, role: str):
+        try:
+            self.client.admin_add_user_to_group(
+                UserPoolId=POOL_ID,
+                Username=username,
+                GroupName=get_role_group(role)
+            )
+        except Exception:
+            raise Generic.UNKNOWN.value
+
     def __get_secret_hash(self, username: str):
         msg = username + CLIENT_ID
         digest = hmac.new(CLIENT_SECRET.encode('utf-8'), msg.encode('utf-8'), hashlib.sha256).digest()
@@ -169,3 +189,11 @@ class CognitoProvider:
             'ServerPath': request.url.path,
             'HttpHeaders': [{'headerName': k, 'headerValue': v} for k, v in request.headers.items()]
         }
+
+    def __construct_user_attributes(self, email: str, first_name: str, last_name: str, role: str) -> Sequence[AttributeTypeTypeDef]:
+        return [
+            {'Name': 'email', 'Value': email},
+            {'Name': 'given_name', 'Value': first_name},
+            {'Name': 'family_name', 'Value': last_name},
+            {'Name': 'custom:role', 'Value': role}
+        ]

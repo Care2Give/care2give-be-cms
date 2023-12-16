@@ -12,18 +12,7 @@ KEYS = {}
 class AuthPolicy:
     def __init__(self, user: Union[AdminGetUserResponseTypeDef, User]):
         if type(user) == dict:
-            attributes = dict([(a.get('Name'), a.get('Value')) for a in user.get('UserAttributes')])
-            kwargs = {
-                'username': user.get('Username'),
-                'email': attributes.get('email'),
-                'first_name': attributes.get('given_name'),
-                'last_name': attributes.get('family_name'),
-                'enabled': user.get('Enabled'),
-                'verified': user.get('UserStatus') == 'CONFIRMED',
-                'role': user.get('custom:role', 'NORMAL_USER'),
-                'password': ''
-            }
-            self.user = User(**kwargs)
+            self.user = User.from_cognito(user)
             return
         self.user: User = user
 
