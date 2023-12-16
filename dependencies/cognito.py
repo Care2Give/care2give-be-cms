@@ -1,5 +1,5 @@
 from models import User
-from utils.aws import CLIENT_ID, CLIENT_SECRET, POOL_ID, REGION_NAME, get_role_group, get_session
+from utils.aws import CLIENT_ID, CLIENT_SECRET, COGNITO_OAUTH_EP, POOL_ID, get_role_group, get_session
 from utils.exception import Auth, Generic
 from fastapi import Request
 from mypy_boto3_cognito_idp import CognitoIdentityProviderClient
@@ -10,10 +10,6 @@ import hashlib
 import hmac
 import requests
 
-# Exceptions
-# TODO: Consolidate common exceptions
-COGNITO_OAUTH_EP = ''
-
 class CognitoOAuthTokenResponse(TypedDict):
     id_token: str
     access_token: str
@@ -23,16 +19,7 @@ class CognitoOAuthTokenResponse(TypedDict):
 
 class CognitoProvider:
     def __init__(self):
-        global COGNITO_OAUTH_EP
         self.client: CognitoIdentityProviderClient = get_session().client('cognito-idp')
-        if not COGNITO_OAUTH_EP:
-            pool_info = self.client.describe_user_pool(UserPoolId=POOL_ID).get('UserPool')
-            if pool_info.get('CustomDomain'):
-                # TODO: To be implemented
-                pass
-            elif pool_info.get('Domain'):
-                domain = pool_info.get('Domain')
-                COGNITO_OAUTH_EP = f'https://{domain}.auth.{REGION_NAME}.amazoncognito.com'
 
     async def register_user(self, email: str, password: str, first_name: str, last_name: str, role: str) -> SignUpResponseTypeDef:
         try:
@@ -117,7 +104,7 @@ class CognitoProvider:
             'code': code,
             'redirect_uri': redirect_uri
         }
-        response = requests.post(COGNITO_OAUTH_EP + '/oauth2/token', data=payload, headers=headers)
+        response = requests.post(f'{COGNITO_OAUTH_EP}/oauth2/token', data=payload, headers=headers)
         tokens: CognitoOAuthTokenResponse = response.json()
         return tokens
 

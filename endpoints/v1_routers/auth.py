@@ -83,7 +83,7 @@ async def oauth_callback_cognito(request: Request, response: Response, cognito: 
 
 # --- START - FOR KEEPSAKE ---
 def get_google_oauth_redirect_uri():
-    return SERVER_URI + '/api/v1' + router.url_path_for('oauth_callback_google')
+    return f'{SERVER_URI}/api/v1{router.url_path_for("oauth_callback_google")}'
 
 def is_google_scope_valid(scopes_str: str):
     scopes = scopes_str.split(' ')

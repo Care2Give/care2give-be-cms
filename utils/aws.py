@@ -13,6 +13,7 @@ CLIENT_ID = os.environ.get('AWS_COGNITO_CLIENT_ID') or ''
 CLIENT_SECRET = os.environ.get('AWS_COGNITO_CLIENT_SECRET') or ''
 KEYS_URL = 'https://cognito-idp.{}.amazonaws.com/{}/.well-known/jwks.json'.format(REGION_NAME, POOL_ID)
 
+COGNITO_OAUTH_EP = ''
 KEYS = {}
 
 def get_session() -> boto3.Session:
@@ -24,6 +25,18 @@ def get_session() -> boto3.Session:
         session_opts['region_name'] = REGION_NAME
         SESSION = boto3.Session(**session_opts)
     return SESSION
+
+def init():
+    global COGNITO_OAUTH_EP
+    if COGNITO_OAUTH_EP == '':
+        client = get_session().client('cognito-idp')
+        pool_info = client.describe_user_pool(UserPoolId=POOL_ID).get('UserPool')
+        if pool_info.get('CustomDomain'):
+            # TODO: To be implemented
+            pass
+        elif pool_info.get('Domain'):
+            domain = pool_info.get('Domain')
+            COGNITO_OAUTH_EP = f'https://{domain}.auth.{REGION_NAME}.amazoncognito.com'
 
 def get_signing_keys():
     global KEYS

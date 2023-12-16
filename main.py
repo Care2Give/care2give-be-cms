@@ -1,11 +1,18 @@
+from contextlib import asynccontextmanager
 from endpoints.v1_routers import router as v1_router
 from models import BaseError
+from utils.aws import init
 from utils.exception import ApplicationException
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from mangum import Mangum
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    init()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/")
 def read_root():
