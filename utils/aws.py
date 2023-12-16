@@ -1,5 +1,6 @@
 from jwt.algorithms import RSAAlgorithm
-from typing import Union
+from typing import Literal, Union
+from urllib.parse import urlencode
 import boto3
 import json
 import jwt
@@ -55,6 +56,16 @@ def decode_cognito_token(raw_token: str, is_identity=True):
     else:
         decoded = jwt.decode(raw_token, pub_key, algorithms=['RS256'])
     return decoded
+
+def construct_cognito_oauth_url(provider: Literal['Google'], redirect_uri: str):
+    params = urlencode({
+        'client_id': CLIENT_ID,
+        'response_type': 'code',
+        'scope': 'email openid profile',
+        'redirect_uri': redirect_uri,
+        'identity_provider': provider
+    })
+    return f'{COGNITO_OAUTH_EP}/oauth2/authorize?{params}'
 
 ROLE_GROUP_MAP = {
     'SUPERADMIN': 'superadmins',

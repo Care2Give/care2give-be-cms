@@ -1,4 +1,5 @@
-from models import BaseResponse, UserRegistrationDetails, UserRegistrationResponse, UserConfirmationCode, UserLoginDetails, TokenResponse, User, UserRefreshToken, AccessTokenResponse
+from models import BaseResponse, UserRegistrationDetails, UserRegistrationResponse, UserConfirmationCode, UserLoginDetails, User, UserRefreshToken
+from utils.aws import COGNITO_OAUTH_EP, construct_cognito_oauth_url
 from utils.constants import SERVER_URI
 from utils.exception import Generic
 from dependencies.auth_policy import DEFAULT_ROLE, AuthPolicy
@@ -33,6 +34,9 @@ def set_auth_cookie(response: Response, cookie_type: AuthCookieType, id_token: s
         expires += timedelta(days=3)
     response.set_cookie(cookie_type.value, id_token, httponly=httponly, samesite='strict', expires=expires)
 
+def get_cognito_oauth_callback_url():
+    return f'{SERVER_URI}/api/v1{router.url_path_for("oauth_callback_cognito")}'
+
 @router.post('/register')
 async def register(user_registration: UserRegistrationDetails, cognito: Annotated[CognitoProvider, Depends(CognitoProvider)]) -> UserRegistrationResponse:
     response = await cognito.register_user(
@@ -54,6 +58,11 @@ async def login(request: Request, user_details: UserLoginDetails, cognito: Annot
     set_auth_cookie(response, AuthCookieType.ACCESS, authentication_result.get('AccessToken', ''))
     set_auth_cookie(response, AuthCookieType.REFRESH, authentication_result.get('RefreshToken', ''))
     return BaseResponse(status='SUCCESS')
+
+@router.get('/login/google')
+async def login_google():
+    url = construct_cognito_oauth_url('Google', get_cognito_oauth_callback_url())
+    return RedirectResponse(url)
 
 @router.post('/refresh')
 async def refresh_token(request: Request, user: Annotated[User, Depends(AuthPolicy.get_authenticated_user)], details: UserRefreshToken, cognito: Annotated[CognitoProvider, Depends(CognitoProvider)], response: Response) -> BaseResponse:
@@ -90,7 +99,7 @@ def is_google_scope_valid(scopes_str: str):
     return 'email' in scopes and 'profile' in scopes and 'openid' in scopes
 
 # @router.get('/login/google')
-async def login_google():
+async def _login_google():
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         'client_secret.json',
         scopes=['openid', 'email', 'profile']
