@@ -1,6 +1,6 @@
 from models import BaseResponse, UserRegistrationDetails, UserRegistrationResponse, UserConfirmationCode, UserLoginDetails, TokenResponse, User, UserRefreshToken, AccessTokenResponse
 from utils.constants import SERVER_URI
-from utils.exception import ApplicationError, ApplicationException
+from utils.exception import Generic
 from dependencies.auth_policy import DEFAULT_ROLE, AuthPolicy
 from dependencies.cognito import CognitoProvider
 from enum import Enum
@@ -70,7 +70,7 @@ async def check_authorized(authed: Annotated[AuthPolicy, Depends(AuthPolicy.get_
 @router.get('/oauth2/callback/cognito')
 async def oauth_callback_cognito(request: Request, response: Response, cognito: Annotated[CognitoProvider, Depends(CognitoProvider)], code: Optional[str] = None):
     if code is None:
-        raise ApplicationException(ApplicationError(kind='BAD_REQUEST', message='Invalid request received'))
+        raise Generic.BAD_REQUEST.value
     tokens = await cognito.login_user_from_oauth(code, f'{request.url.scheme}://{request.url.netloc}{request.url.path}')
     # TODO: Link with existing user if available, otherwise proactively create and link
     user = await AuthPolicy.get_authenticated_user(tokens.get('id_token'))
@@ -102,9 +102,9 @@ async def login_google():
 # @router.get('/oauth2/callback/google')
 async def oauth_callback_google(request: Request, cognito: Annotated[CognitoProvider, Depends(CognitoProvider)], state: Optional[str] = None, scope: Optional[str] = None, code: Optional[str] = None):
     if state is None or code is None or scope is None:
-        raise ApplicationException(ApplicationError(kind='BAD_REQUEST', message='Invalid request received'))
+        raise Generic.BAD_REQUEST.value
     if not is_google_scope_valid(scope):
-        raise ApplicationException(ApplicationError(kind='UNKNOWN', message='Unknown error occurred'))
+        raise Generic.UNKNOWN.value
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         'client_secret.json',
         scopes=None,
@@ -118,7 +118,7 @@ async def oauth_callback_google(request: Request, cognito: Annotated[CognitoProv
 
     email = user_info.get('email')
     if not email:
-        raise ApplicationException(ApplicationError(kind='UNKNOWN', message='Unknown error occurred'))
+        raise Generic.UNKNOWN.value
 
     user = await cognito.find_user_by_email(email)
     return BaseResponse(status='SUCCESS')

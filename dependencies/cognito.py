@@ -1,6 +1,6 @@
 from models import User
 from utils.aws import CLIENT_ID, CLIENT_SECRET, POOL_ID, REGION_NAME, get_role_group, get_session
-from utils.exception import ApplicationError, ApplicationException
+from utils.exception import Auth, Generic
 from fastapi import Request
 from mypy_boto3_cognito_idp import CognitoIdentityProviderClient
 from mypy_boto3_cognito_idp.type_defs import AdminGetUserResponseTypeDef, AdminInitiateAuthResponseTypeDef, ContextDataTypeTypeDef, ListUsersResponseTypeDef, SignUpResponseTypeDef, UserTypeTypeDef
@@ -12,7 +12,6 @@ import requests
 
 # Exceptions
 # TODO: Consolidate common exceptions
-_UNKNOWN_EXC = ApplicationException(ApplicationError(kind='UNKNOWN', message='Unknown error occurred'))
 COGNITO_OAUTH_EP = ''
 
 class CognitoOAuthTokenResponse(TypedDict):
@@ -70,7 +69,7 @@ class CognitoProvider:
 
             return response
         except self.client.exceptions.UsernameExistsException:
-            raise ApplicationException(ApplicationError(kind='EMAIL_EXISTS', message='Email is already in use!'))
+            raise Auth.EMAIL_EXISTS.value
 
     async def verify_user(self, email: str, code: str):
         try:
@@ -82,11 +81,11 @@ class CognitoProvider:
             )
             return response
         except self.client.exceptions.CodeMismatchException:
-            raise ApplicationException(ApplicationError(kind='CODE_INVALID', message='Invalid code provided!'))
+            raise Auth.CODE_INVALID.value
         except self.client.exceptions.ExpiredCodeException:
-            raise ApplicationException(ApplicationError(kind='CODE_EXPIRED', message='Validation code has expired, please request for a new one!'))
+            raise Auth.CODE_EXPIRED.value
         except:
-            raise _UNKNOWN_EXC
+            raise Generic.UNKNOWN.value
 
     async def login_user(self, email: str, password: str, request: Request) -> AdminInitiateAuthResponseTypeDef:
         try:
@@ -103,9 +102,9 @@ class CognitoProvider:
             )
             return response
         except self.client.exceptions.NotAuthorizedException:
-            raise ApplicationException(ApplicationError(kind='CREDENTIALS_INVALID', message='Incorrect username or password'))
+            raise Auth.INVALID_CREDENTIALS.value
         except Exception:
-            raise _UNKNOWN_EXC
+            raise Generic.UNKNOWN.value
 
     async def login_user_from_oauth(self, code: str, redirect_uri: str) -> CognitoOAuthTokenResponse:
         client_id_secret = base64.b64encode(f'{CLIENT_ID}:{CLIENT_SECRET}'.encode('utf-8')).decode()
@@ -138,7 +137,7 @@ class CognitoProvider:
         except self.client.exceptions.UserNotFoundException:
             return None
         except:
-            raise _UNKNOWN_EXC
+            raise Generic.UNKNOWN.value
 
     async def find_user_by_email(self, email: str) -> Optional[UserTypeTypeDef]:
         try:
@@ -151,7 +150,7 @@ class CognitoProvider:
             user = response.get('Users', [])
             return user[0] if len(user) > 0 else None
         except Exception:
-            raise _UNKNOWN_EXC
+            raise Generic.UNKNOWN.value
 
     async def renew_token(self, user: User, refresh_token: str, request: Request):
         try:
@@ -167,9 +166,9 @@ class CognitoProvider:
             )
             return response
         except self.client.exceptions.NotAuthorizedException:
-            raise ApplicationException(ApplicationError(kind='REFRESH_TOKEN_INVALID', message='Incorrect refresh token'))
+            raise Auth.INVALID_REFRESH_TOKEN.value
         except Exception:
-            raise _UNKNOWN_EXC
+            raise Generic.UNKNOWN.value
 
     def __get_secret_hash(self, username: str):
         msg = username + CLIENT_ID

@@ -1,14 +1,13 @@
 from .cognito import CognitoProvider
 from models import User
 from utils.aws import decode_cognito_token, get_role_group
-from utils.exception import ApplicationError, ApplicationException
+from utils.exception import Auth
 from fastapi import Cookie, Header
 from mypy_boto3_cognito_idp.type_defs import AdminGetUserResponseTypeDef
 from typing import Annotated, Union
 
 DEFAULT_ROLE = 'NORMAL_USER'
 KEYS = {}
-_UNAUTHORIZED_EXC = ApplicationException(ApplicationError(kind="UNAUTHORIZED", message="User is not authorized!", status_code=401))
 
 class AuthPolicy:
     def __init__(self, user: Union[AdminGetUserResponseTypeDef, User]):
@@ -46,35 +45,35 @@ class AuthPolicy:
     @classmethod
     async def get_authenticated_user(cls, session: Annotated[Union[str, None], Cookie()] = None) -> User:
         if session is None:
-            raise _UNAUTHORIZED_EXC
+            raise Auth.UNAUTHORIZED.value
 
         try:
             decoded = decode_cognito_token(session)
             if decoded is None:
-                raise _UNAUTHORIZED_EXC
+                raise Auth.UNAUTHORIZED.value
 
             cognito = CognitoProvider()
             user_details = await cognito.get_user(decoded.get('cognito:username'))
             if user_details is None:
-                raise _UNAUTHORIZED_EXC
+                raise Auth.UNAUTHORIZED.value
 
             auth_policy = AuthPolicy(user_details)
             user = auth_policy.get_user()
         except:
-            raise _UNAUTHORIZED_EXC
+            raise Auth.UNAUTHORIZED.value
         return user
 
     @classmethod
     async def get_authorized_user(cls, session: Annotated[Union[str, None], Cookie()] = None, authorization: Annotated[Union[str, None], Header()] = None):
         if authorization is None or not authorization.startswith('Bearer '):
-            raise _UNAUTHORIZED_EXC
+            raise Auth.UNAUTHORIZED.value
         try:
             authorization = authorization[7:]
             decoded = decode_cognito_token(authorization, False)
             if decoded is None:
-                raise _UNAUTHORIZED_EXC
+                raise Auth.UNAUTHORIZED.value
         except:
-            raise _UNAUTHORIZED_EXC
+            raise Auth.UNAUTHORIZED.value
 
         user = await cls.get_authenticated_user(session)
         return cls(user)
