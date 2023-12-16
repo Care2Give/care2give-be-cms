@@ -28,6 +28,7 @@ class User(UserRegistrationDetails):
     enabled: bool
     verified: bool
 
+# TODO: User confirmation should use a code rather than email as identifier
 class UserConfirmationCode(BaseModel):
     email: EmailStr
     code: SecretStr

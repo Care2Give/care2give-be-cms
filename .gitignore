@@ -193,3 +193,6 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# Other secrets
+client_secret.json
