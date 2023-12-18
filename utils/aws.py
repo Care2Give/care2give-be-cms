@@ -8,10 +8,10 @@ import os
 import requests
 
 SESSION: Union[boto3.Session, None] = None
-REGION_NAME = os.environ.get('AWS_DEFAULT_REGION')
-POOL_ID = os.environ.get('AWS_COGNITO_POOL_ID') or ''
-CLIENT_ID = os.environ.get('AWS_COGNITO_CLIENT_ID') or ''
-CLIENT_SECRET = os.environ.get('AWS_COGNITO_CLIENT_SECRET') or ''
+REGION_NAME = os.environ.get('AWS_DEFAULT_REGION', '')
+POOL_ID = os.environ.get('AWS_COGNITO_POOL_ID', '')
+CLIENT_ID = os.environ.get('AWS_COGNITO_CLIENT_ID', '')
+CLIENT_SECRET = os.environ.get('AWS_COGNITO_CLIENT_SECRET', '')
 KEYS_URL = 'https://cognito-idp.{}.amazonaws.com/{}/.well-known/jwks.json'.format(REGION_NAME, POOL_ID)
 
 COGNITO_OAUTH_EP = ''
