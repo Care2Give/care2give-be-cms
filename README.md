@@ -16,7 +16,8 @@ The terraform scripts require some valid Amazon and Google credentials for the s
 ```bash
 export TF_VAR_google_client_id=*GOOGLE_OAUTH_CLIENT_ID*
 export TF_VAR_google_client_secret=*GOOGLE_OAUTH_CLIENT_SECRET*
-# AWS IAM User with AmazonCognitoPowerUser, AWSLambda_FullAccess, IAMFullAccess and additional permission for 'lambda:CreateFunction'
+# AWS IAM User with AmazonCognitoPowerUser, AWSLambda_FullAccess,
+# IAMFullAccess and additional permission for 'lambda:CreateFunction'
 export TF_VAR_aws_access_key=*IAM_USER_ACCESS_KEY_ID*
 export TF_VAR_aws_secret_key=*IAM_USER_SECRET_KEY*
 ```
