@@ -1,9 +1,16 @@
 # care2give-be-cms
 
+## Setup
+
+Python version: `3.10.6`
+Use `pyenv` to install the correct version.
+
 ## Terraform
+
 Terraform scripts have been written to setup the required infrastructure on Amazon to support features in this application.
 
 #### Terraform Environment Variables
+
 The terraform scripts require some valid Amazon and Google credentials for the scripts to work
 
 ```bash
@@ -19,6 +26,7 @@ To obtain the relevant Google credentials, see [this](https://developers.google.
 ## Before Running the Application
 
 #### Application Environment Variables
+
 The application requires a few environment variables to be set to operate correctly
 
 ```bash
@@ -46,10 +54,7 @@ Next, in the `utils/constants.py`, set the appropriate values for the constants.
 SERVER_URI=https://uri_without_path:8000
 ```
 
-## Setup
-
-Python version: `3.10.6`
-Use `pyenv` to install the correct version.
+## Running the application
 
 ```bash
 poetry install  # install dependencies
@@ -58,3 +63,5 @@ uvicorn main:app --ssl-certfile cert.pem --ssl-keyfile key.pem --reload # start 
 ```
 
 Note: Start application from same directory as `main.py`!
+
+API documentation may be accessed at `/docs`.
