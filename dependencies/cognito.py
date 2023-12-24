@@ -3,7 +3,7 @@ from utils.aws import CLIENT_ID, CLIENT_SECRET, COGNITO_OAUTH_EP, POOL_ID, get_r
 from utils.exception import Auth, Generic
 from fastapi import Request
 from mypy_boto3_cognito_idp import CognitoIdentityProviderClient
-from mypy_boto3_cognito_idp.type_defs import AdminGetUserResponseTypeDef, AdminInitiateAuthResponseTypeDef, AttributeTypeTypeDef, ContextDataTypeTypeDef, SignUpResponseTypeDef, UserTypeTypeDef
+from mypy_boto3_cognito_idp.type_defs import AdminGetUserResponseTypeDef, AdminInitiateAuthResponseTypeDef, AttributeTypeTypeDef, ContextDataTypeTypeDef, SignUpResponseTypeDef, UserContextDataTypeTypeDef, UserTypeTypeDef
 from typing import Optional, Sequence, TypedDict
 import base64
 import hashlib
@@ -35,6 +35,10 @@ class CognitoProvider:
             return response
         except self.client.exceptions.UsernameExistsException:
             raise Auth.EMAIL_EXISTS.value
+        except self.client.exceptions.InvalidPasswordException:
+            raise Auth.BAD_PASSWORD.value
+        except:
+            raise Generic.UNKNOWN.value
 
     async def verify_user(self, email: str, code: str):
         try:
@@ -167,6 +171,38 @@ class CognitoProvider:
         except Exception:
             raise Generic.UNKNOWN.value
 
+    async def request_forgot_password(self, request: Request, email: str):
+        try:
+            self.client.forgot_password(
+                ClientId=CLIENT_ID,
+                Username=email,
+                SecretHash=self.__get_secret_hash(email),
+                UserContextData=self.__get_request_user_context(request)
+            )
+        except self.client.exceptions.InvalidParameterException:
+            pass
+        except:
+            raise Generic.UNKNOWN.value
+
+    async def reset_forgotten_password(self, request: Request, email: str, code: str, password: str):
+        try:
+            self.client.confirm_forgot_password(
+                ClientId=CLIENT_ID,
+                SecretHash=self.__get_secret_hash(email),
+                Username=email,
+                ConfirmationCode=code,
+                Password=password,
+                UserContextData=self.__get_request_user_context(request)
+            )
+        except self.client.exceptions.CodeMismatchException:
+            raise Auth.CODE_INVALID.value
+        except self.client.exceptions.ExpiredCodeException:
+            raise Auth.CODE_EXPIRED.value
+        except self.client.exceptions.InvalidPasswordException:
+            raise Auth.BAD_PASSWORD.value
+        except:
+            raise Generic.UNKNOWN.value
+
     async def _add_user_to_group(self, username: str, role: str):
         try:
             self.client.admin_add_user_to_group(
@@ -181,6 +217,11 @@ class CognitoProvider:
         msg = username + CLIENT_ID
         digest = hmac.new(CLIENT_SECRET.encode('utf-8'), msg.encode('utf-8'), hashlib.sha256).digest()
         return base64.b64encode(digest).decode()
+
+    def __get_request_user_context(self, request: Request) -> UserContextDataTypeTypeDef:
+        return {
+            'IpAddress': request.client.host if request.client is not None else ''
+        }
 
     def __get_request_context(self, request: Request) -> ContextDataTypeTypeDef:
         return {

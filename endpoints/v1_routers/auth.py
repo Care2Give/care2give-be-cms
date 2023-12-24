@@ -1,4 +1,4 @@
-from models import BaseResponse, UserRegistrationDetails, UserRegistrationResponse, UserConfirmationCode, UserLoginDetails, User, UserRefreshToken
+from models import BaseResponse, UserRegistrationDetails, UserRegistrationResponse, UserConfirmationCode, UserLoginDetails, User, UserRefreshToken, UserLoginEmail, UserPasswordResetConfirmationCode
 from utils.aws import construct_cognito_oauth_url
 from utils.constants import SERVER_URI
 from utils.exception import Auth, Generic
@@ -113,6 +113,20 @@ async def signout(response: Response, cognito: Annotated[CognitoProvider, Depend
 
     unset_auth_cookies(response)
     return BaseResponse(status="SUCCESS")
+
+@router.post('/forgot-password', description='''
+    Sends a corresponding request to Cognito to initiate the forgot password flow for a user.<br>
+    User will be sent a confirmation code via their prefered contact medium if the user exists.<br>
+    If user does not exist, this endpoint will still respond with a success to prevent the endpoint from being used to enumerate usernames.
+''')
+async def request_forgot_password(request: Request, cognito: Annotated[CognitoProvider, Depends(CognitoProvider)], details: UserLoginEmail):
+    await cognito.request_forgot_password(request, details.email)
+    return BaseResponse(status='SUCCESS')
+
+@router.post('/reset-password')
+async def reset_password(request: Request, details: UserPasswordResetConfirmationCode, cognito: Annotated[CognitoProvider, Depends(CognitoProvider)]):
+    await cognito.reset_forgotten_password(request, details.email, details.code.get_secret_value(), details.password.get_secret_value())
+    return BaseResponse(status='SUCCESS')
 
 # --- START - FOR KEEPSAKE ---
 def get_google_oauth_redirect_uri():

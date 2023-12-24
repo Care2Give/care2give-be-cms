@@ -8,14 +8,18 @@ __all__ = [
     'TokenResponse',
     'User',
     'UserConfirmationCode',
+    'UserPasswordResetConfirmationCode',
+    'UserLoginEmail',
     'UserLoginDetails',
     'UserRefreshToken',
     'UserRegistrationDetails',
     'UserRegistrationResponse'
 ]
 
-class UserLoginDetails(BaseModel):
+class UserLoginEmail(BaseModel):
     email: EmailStr
+
+class UserLoginDetails(UserLoginEmail):
     password: SecretStr
 
 class UserRegistrationDetails(UserLoginDetails):
@@ -49,6 +53,12 @@ class User(UserRegistrationDetails):
 class UserConfirmationCode(BaseModel):
     email: EmailStr
     code: SecretStr
+
+# TODO: User password reset confirmation should use a UUID rather than email as identifier
+class UserPasswordResetConfirmationCode(BaseModel):
+    email: EmailStr
+    code: SecretStr
+    password: SecretStr
 
 class UserRegistrationResponse(BaseResponse):
     confirmation_medium: str
