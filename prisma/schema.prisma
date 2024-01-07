@@ -10,16 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-<<<<<<< Updated upstream
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-=======
 model Campaign {
   id                     String                   @id @default(uuid())
   createdAt              DateTime                 @default(now())
@@ -77,4 +67,3 @@ model Donation {
   campaignId            String
   typeOfDonation        String   @db.VarChar(20)
 }
->>>>>>> Stashed changes

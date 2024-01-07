@@ -16,4 +16,42 @@ const createCampaign = {
   }),
 };
 
-export default { createCampaign };
+const findCampaignById = {
+  params: Joi.object().keys({
+    campaignId: Joi.string().required(),
+  }),
+};
+
+const updateCampaignById = {
+  params: Joi.object().keys({
+    campaignId: Joi.string().required(),
+  }),
+  body: Joi.object()
+    .keys({
+      status: Joi.string(),
+      startDate: Joi.date(),
+      endDate: Joi.date(),
+      title: Joi.string(),
+      description: Joi.string(),
+      currency: Joi.string(),
+      dollars: Joi.number(),
+      cents: Joi.number(),
+      createdBy: Joi.string(),
+      editedBy: Joi.string(),
+      imageUrl: Joi.array().items(Joi.string()),
+    })
+    .min(1),
+};
+
+const deleteCampaignById = {
+  params: Joi.object().keys({
+    campaignId: Joi.string().required(),
+  }),
+};
+
+export default {
+  createCampaign,
+  findCampaignById,
+  updateCampaignById,
+  deleteCampaignById,
+};
