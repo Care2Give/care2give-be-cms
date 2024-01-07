@@ -35,7 +35,16 @@ const createCampaign = catchAsync(async (req, res) => {
 
 const listCampaigns = catchAsync(async (req, res) => {
   const campaigns = await campaignService.listCampaigns();
-  res.status(httpStatus.OK).send(campaigns);
+  const result = campaigns.map((campaign) => {
+    return {
+      ...campaign,
+      targetAmount: campaign.dollars + campaign.cents / 100,
+      currentAmount: 0,
+      targetDate: new Date(campaign.endDate).getTime(),
+      slug: campaign.title.toLowerCase().replace(/ /g, "-"),
+    };
+  });
+  res.status(httpStatus.OK).send(result);
 });
 
 const findCampaignById = catchAsync(async (req, res) => {

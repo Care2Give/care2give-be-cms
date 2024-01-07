@@ -7,7 +7,7 @@ async function main() {
     data: {
       status: "ACTIVE",
       startDate: new Date("2023-12-12"),
-      endDate: new Date(),
+      endDate: new Date("2024-12-12"),
       title: "Test Campaign One",
       description: "This is a test campaign",
       currency: "SGD",
@@ -26,7 +26,7 @@ async function main() {
     data: {
       status: "ACTIVE",
       startDate: new Date("2023-12-13"),
-      endDate: new Date(),
+      endDate: new Date("2024-12-12"),
       title: "Test Campaign Two",
       description: "This is test campaign two",
       currency: "SGD",
@@ -41,7 +41,7 @@ async function main() {
     data: {
       status: "ACTIVE",
       startDate: new Date("2023-12-14"),
-      endDate: new Date(),
+      endDate: new Date("2024-12-12"),
       title: "Test Campaign Three",
       description: "",
       currency: "SGD",
