@@ -10,6 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+<<<<<<< Updated upstream
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -18,3 +19,62 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+=======
+model Campaign {
+  id                     String                   @id @default(uuid())
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  status                 String
+  startDate              DateTime
+  endDate                DateTime
+  title                  String                   @db.VarChar(255)
+  description            String
+  currency               String
+  dollars                Int
+  cents                  Int
+  createdBy              String
+  editedBy               String
+  imageUrl               String[]
+  CampaignDonationAmount CampaignDonationAmount[]
+  Donation               Donation[]
+}
+
+model CampaignDonationAmount {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  currency    String
+  dollars     Int
+  cents       Int
+  title       String
+  description String
+  campaign    Campaign @relation(fields: [campaignId], references: [id])
+  campaignId  String
+}
+
+model Email {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  content   String   @unique
+  editedBy  String
+  version   Int      @default(autoincrement())
+}
+
+model Donation {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now())
+  donorFirstName        String
+  donorLastName         String
+  donorEmail            String
+  donorNricA            String
+  donorNricB            String
+  donorTrainingPrograms String[]
+  currency              String
+  dollars               Int
+  cents                 Int
+  campaign              Campaign @relation(fields: [campaignId], references: [id])
+  campaignId            String
+  typeOfDonation        String   @db.VarChar(20)
+}
+>>>>>>> Stashed changes
