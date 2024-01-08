@@ -11,6 +11,7 @@ router.post(
   campaignController.createCampaign
 );
 
+// All campaigns page
 router.get("/list", campaignController.listCampaigns);
 
 router

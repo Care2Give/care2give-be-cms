@@ -1,5 +1,5 @@
 import httpStatus from "http-status";
-import { campaignService } from "../services";
+import { campaignService, donationService } from "../services";
 import catchAsync from "../utils/catchAsync";
 import ApiError from "../utils/ApiError";
 
@@ -33,15 +33,18 @@ const createCampaign = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(campaign);
 });
 
+// All campaigns page
 const listCampaigns = catchAsync(async (req, res) => {
-  const campaigns = await campaignService.listCampaigns();
-  const result = campaigns.map((campaign) => {
+  const campaignsWithDonations = await campaignService.listCampaigns();
+  const result = campaignsWithDonations.map((campaign) => {
+    const currentAmount = campaign.donations.reduce((acc, donation) => {
+      return acc + donation.dollars + donation.cents / 100;
+    }, 0);
     return {
       ...campaign,
       targetAmount: campaign.dollars + campaign.cents / 100,
-      currentAmount: 0, // TODO: Get current amount from donations
+      currentAmount,
       targetDate: new Date(campaign.endDate).getTime(),
-      slug: `${campaign.id}/${campaign.title.toLowerCase().replace(/ /g, "-")}`,
     };
   });
   res.status(httpStatus.OK).send(result);
@@ -53,12 +56,22 @@ const findCampaignById = catchAsync(async (req, res) => {
   if (!campaign) {
     throw new ApiError(httpStatus.NOT_FOUND, "Campaign not found");
   }
+  const currentAmount = campaign.donations.reduce((acc, donation) => {
+    return acc + donation.dollars + donation.cents / 100;
+  }, 0);
+  const donationAmounts = campaign.donationAmounts.map((donationAmount) => {
+    return {
+      ...donationAmount,
+      value: donationAmount.dollars + donationAmount.cents / 100,
+    };
+  });
   res.status(httpStatus.OK).send({
     ...campaign,
-    donors: 0, // TODO: Get donors from donations
+    donors: campaign.donations.length,
     targetAmount: campaign.dollars + campaign.cents / 100,
-    currentAmount: 0, // TODO: Get current amount from donations
+    currentAmount,
     targetDate: new Date(campaign.endDate).getTime(),
+    donationAmounts,
   });
 });
 

@@ -23,7 +23,7 @@ async function main() {
       title: "Test Campaign One",
       description: "This is a test campaign",
       currency: "SGD",
-      dollars: 123,
+      dollars: 2000,
       cents: 45,
       createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
       editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
@@ -72,7 +72,6 @@ async function main() {
       data: {
         currency: "SGD",
         dollars: 1000,
-        title: "Test Campaign Donation Amount One",
         description: "This is a test campaign donation amount",
         campaignId: campaignOne.id,
       },
@@ -82,7 +81,6 @@ async function main() {
       data: {
         currency: "SGD",
         dollars: 2000,
-        title: "Test Campaign Donation Amount Two",
         description: "This is a test campaign donation amount",
         campaignId: campaignOne.id,
       },
@@ -92,7 +90,6 @@ async function main() {
       data: {
         currency: "SGD",
         dollars: 5000,
-        title: "Test Campaign Donation Amount Three",
         description: "This is a test campaign donation amount",
         campaignId: campaignOne.id,
       },
@@ -103,9 +100,8 @@ async function main() {
       data: {
         currency: "SGD",
         dollars: 2000,
-        title: "Test Campaign Donation Amount One",
         description: "This is a test campaign donation amount",
-        campaignId: campaignOne.id,
+        campaignId: campaignTwo.id,
       },
     });
   const campaignTwoDonationAmountTwo =
@@ -113,9 +109,8 @@ async function main() {
       data: {
         currency: "SGD",
         dollars: 5000,
-        title: "Test Campaign Donation Amount Two",
         description: "This is a test campaign donation amount",
-        campaignId: campaignOne.id,
+        campaignId: campaignTwo.id,
       },
     });
   const campaignTwoDonationAmountThree =
@@ -123,9 +118,8 @@ async function main() {
       data: {
         currency: "SGD",
         dollars: 8000,
-        title: "Test Campaign Donation Amount Three",
         description: "This is a test campaign donation amount",
-        campaignId: campaignOne.id,
+        campaignId: campaignTwo.id,
       },
     });
 
@@ -134,9 +128,8 @@ async function main() {
       data: {
         currency: "SGD",
         dollars: 100,
-        title: "Test Campaign Donation Amount One",
         description: "This is a test campaign donation amount",
-        campaignId: campaignOne.id,
+        campaignId: campaignThree.id,
       },
     });
   const campaignThreeDonationAmountTwo =
@@ -144,9 +137,8 @@ async function main() {
       data: {
         currency: "SGD",
         dollars: 200,
-        title: "Test Campaign Donation Amount Two",
         description: "This is a test campaign donation amount",
-        campaignId: campaignOne.id,
+        campaignId: campaignThree.id,
       },
     });
   const campaignThreeDonationAmountThree =
@@ -154,9 +146,8 @@ async function main() {
       data: {
         currency: "SGD",
         dollars: 300,
-        title: "Test Campaign Donation Amount Three",
         description: "This is a test campaign donation amount",
-        campaignId: campaignOne.id,
+        campaignId: campaignThree.id,
       },
     });
 

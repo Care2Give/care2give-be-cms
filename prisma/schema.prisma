@@ -11,22 +11,22 @@ datasource db {
 }
 
 model Campaign {
-  id                     String                   @id @default(nanoid())
-  createdAt              DateTime                 @default(now())
-  updatedAt              DateTime                 @updatedAt
-  status                 CampaignStatus           @default(ACTIVE)
-  startDate              DateTime
-  endDate                DateTime
-  title                  String                   @db.VarChar(255)
-  description            String?
-  currency               String                   @default("SGD") @db.VarChar(3)
-  dollars                Int                      @default(0)
-  cents                  Int                      @default(0)
-  createdBy              String
-  editedBy               String
-  imageUrl               String[]
-  CampaignDonationAmount CampaignDonationAmount[]
-  Donation               Donation[]
+  id              String                   @id @default(nanoid())
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  status          CampaignStatus           @default(ACTIVE)
+  startDate       DateTime
+  endDate         DateTime
+  title           String                   @db.VarChar(255)
+  description     String?
+  currency        String                   @default("SGD") @db.VarChar(3)
+  dollars         Int                      @default(0)
+  cents           Int                      @default(0)
+  createdBy       String
+  editedBy        String
+  imageUrl        String[]
+  donationAmounts CampaignDonationAmount[]
+  donations       Donation[]
 }
 
 enum CampaignStatus {
@@ -42,7 +42,6 @@ model CampaignDonationAmount {
   currency    String   @default("SGD") @db.VarChar(3)
   dollars     Int      @default(0)
   cents       Int      @default(0)
-  title       String   @db.VarChar(255)
   description String?
   campaign    Campaign @relation(fields: [campaignId], references: [id])
   campaignId  String

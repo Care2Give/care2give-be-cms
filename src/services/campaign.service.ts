@@ -2,6 +2,14 @@ import { Campaign, CampaignStatus, Prisma } from "@prisma/client";
 import prisma from "../client";
 import ApiError from "../utils/ApiError";
 import httpStatus from "http-status";
+import {
+  ListCampaignsPayload,
+  listCampaignsSelect,
+} from "../types/ListCampaignsSelect";
+import {
+  FindCampaignByIdPayload,
+  findCampaignByIdSelect,
+} from "../types/FindCampaignByIdSelect";
 
 /**
  * Create a campaign
@@ -41,8 +49,13 @@ const createCampaign = async (
 /**
  * List campaigns
  */
-const listCampaigns = async (): Promise<Campaign[]> => {
-  return prisma.campaign.findMany();
+const listCampaigns = async (): Promise<ListCampaignsPayload[]> => {
+  return prisma.campaign.findMany({
+    where: {
+      status: "ACTIVE",
+    },
+    select: listCampaignsSelect,
+  });
 };
 
 /**
@@ -50,8 +63,13 @@ const listCampaigns = async (): Promise<Campaign[]> => {
  * @param {ObjectId} id
  * @returns {Promise<Campaign>}
  */
-const findCampaignById = async (id: string): Promise<Campaign | null> => {
-  return prisma.campaign.findUnique({ where: { id } });
+const findCampaignById = async (
+  id: string
+): Promise<FindCampaignByIdPayload | null> => {
+  return prisma.campaign.findUnique({
+    where: { id },
+    select: findCampaignByIdSelect,
+  });
 };
 
 /**
@@ -80,7 +98,9 @@ const updateCampaignById = async (
  * @param {ObjectId} id
  * @returns {Promise<Campaign>}
  */
-const deleteCampaignById = async (id: string): Promise<Campaign | null> => {
+const deleteCampaignById = async (
+  id: string
+): Promise<FindCampaignByIdPayload | null> => {
   const campaign = await findCampaignById(id);
   if (!campaign) {
     throw new ApiError(httpStatus.NOT_FOUND, "Campaign not found");
