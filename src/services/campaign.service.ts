@@ -1,4 +1,4 @@
-import { Campaign, Prisma } from "@prisma/client";
+import { Campaign, CampaignStatus, Prisma } from "@prisma/client";
 import prisma from "../client";
 import ApiError from "../utils/ApiError";
 import httpStatus from "http-status";
@@ -9,7 +9,7 @@ import httpStatus from "http-status";
  * @returns {Promise<Campaign>}
  */
 const createCampaign = async (
-  status: string,
+  status: CampaignStatus,
   startDate: Date,
   endDate: Date,
   title: string,

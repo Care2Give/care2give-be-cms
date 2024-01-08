@@ -39,9 +39,9 @@ const listCampaigns = catchAsync(async (req, res) => {
     return {
       ...campaign,
       targetAmount: campaign.dollars + campaign.cents / 100,
-      currentAmount: 0,
+      currentAmount: 0, // TODO: Get current amount from donations
       targetDate: new Date(campaign.endDate).getTime(),
-      slug: campaign.title.toLowerCase().replace(/ /g, "-"),
+      slug: `${campaign.id}/${campaign.title.toLowerCase().replace(/ /g, "-")}`,
     };
   });
   res.status(httpStatus.OK).send(result);
@@ -53,7 +53,13 @@ const findCampaignById = catchAsync(async (req, res) => {
   if (!campaign) {
     throw new ApiError(httpStatus.NOT_FOUND, "Campaign not found");
   }
-  res.status(httpStatus.OK).send(campaign);
+  res.status(httpStatus.OK).send({
+    ...campaign,
+    donors: 0, // TODO: Get donors from donations
+    targetAmount: campaign.dollars + campaign.cents / 100,
+    currentAmount: 0, // TODO: Get current amount from donations
+    targetDate: new Date(campaign.endDate).getTime(),
+  });
 });
 
 const updateCampaignById = catchAsync(async (req, res) => {
