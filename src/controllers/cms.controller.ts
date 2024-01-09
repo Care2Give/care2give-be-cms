@@ -38,7 +38,6 @@ const getLatestEmail = catchAsync(async (_, res) => {
 const createEmail = catchAsync(async (req, res) => {
   // TODO: need to sanitise input
   const { editedBy, subject, content } = req.body;
-  console.log(unescapeHtml(subject), unescapeHtml(content));
   const email = await cmsService.createEmail(
     editedBy,
     unescapeHtml(subject),
