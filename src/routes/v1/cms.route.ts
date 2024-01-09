@@ -24,4 +24,7 @@ router.get("/", (req: RequireAuthProp<Request>, res) => {
 });
 
 router.get("/campaigns", cmsController.listCampaigns);
+
+router.get("/email-editor", cmsController.getLatestEmail);
+router.post("/email-editor", cmsController.createEmail);
 export default router;

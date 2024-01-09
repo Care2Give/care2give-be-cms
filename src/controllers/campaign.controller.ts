@@ -1,5 +1,5 @@
 import httpStatus from "http-status";
-import { campaignService, donationService } from "../services";
+import { campaignService } from "../services";
 import catchAsync from "../utils/catchAsync";
 import ApiError from "../utils/ApiError";
 
@@ -34,7 +34,7 @@ const createCampaign = catchAsync(async (req, res) => {
 });
 
 // All campaigns page
-const listCampaigns = catchAsync(async (req, res) => {
+const listCampaigns = catchAsync(async (_, res) => {
   const campaignsWithDonations = await campaignService.listCampaigns();
   const result = campaignsWithDonations.map((campaign) => {
     const currentAmount = campaign.donations.reduce((acc, donation) => {
@@ -87,7 +87,7 @@ const updateCampaignById = catchAsync(async (req, res) => {
 const deleteCampaignById = catchAsync(async (req, res) => {
   const { campaignId } = req.params;
   await campaignService.deleteCampaignById(campaignId);
-  res.status(httpStatus.NO_CONTENT).send();
+  res.status(httpStatus.NO_CONTENT);
 });
 
 export default {
