@@ -35,12 +35,12 @@ export default router;
  * @swagger
  * tags:
  *  name: Campaigns
- * description: Campaign management and retrieval
+ *  description: Campaign management and retrieval
  */
 
 /**
  * @swagger
- * /campaign
+ * /campaign/create:
  *  post:
  *   summary: Create a campaign
  *   description: Create a campaigns.
