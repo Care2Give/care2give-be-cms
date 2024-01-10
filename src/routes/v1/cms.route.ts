@@ -1,4 +1,4 @@
-import express, { Request } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import validate from "../../middlewares/validate";
 import {
   ClerkExpressRequireAuth,
@@ -17,6 +17,11 @@ const router = express.Router();
 
 router.use(ClerkExpressRequireAuth());
 router.use(clerkValidateOrigin);
+
+router.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
+  res.status(401).send("Unauthenticated!");
+});
 
 router.get("/", (req: RequireAuthProp<Request>, res) => {
   // console.log(req.auth);
