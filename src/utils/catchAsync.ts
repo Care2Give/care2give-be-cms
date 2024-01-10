@@ -1,3 +1,4 @@
+import { RequireAuthProp } from "@clerk/clerk-sdk-node";
 import { RequestHandler } from "express";
 import { Request, Response, NextFunction } from "express-serve-static-core";
 
