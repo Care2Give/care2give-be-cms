@@ -15,6 +15,8 @@ router.post(
   emailController.createEmailTemplate
 );
 
+router.get("/", emailController.getLatestEmailTemplate);
+
 // All emails page
 router.get("/list", emailController.listEmailTemplates);
 

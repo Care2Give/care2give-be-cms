@@ -1,5 +1,7 @@
 import { Email } from "@prisma/client";
 import prisma from "../client";
+import ApiError from "../utils/ApiError";
+import httpStatus from "http-status";
 
 /**
  * Create an email template
@@ -11,11 +13,20 @@ const createEmailTemplate = async (
   content: string,
   editedBy: string
 ): Promise<Email> => {
+  if (!editedBy) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "editedBy is required");
+  }
+  if (!subject) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "subject is required");
+  }
+  if (!content) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "content is required");
+  }
   return prisma.email.create({
     data: {
+      editedBy,
       subject,
       content,
-      editedBy,
     },
   });
 };
@@ -41,8 +52,26 @@ const findEmailTemplateById = async (
   });
 };
 
+const getLatestEmailTemplate = async () => {
+  const maxVersion = await prisma.email
+    .aggregate({
+      _max: {
+        version: true,
+      },
+    })
+    .then((res) => res._max.version);
+  return maxVersion
+    ? prisma.email.findFirst({
+        where: {
+          version: maxVersion,
+        },
+      })
+    : null;
+};
+
 export default {
   createEmailTemplate,
   listEmailTemplates,
   findEmailTemplateById,
+  getLatestEmailTemplate,
 };
