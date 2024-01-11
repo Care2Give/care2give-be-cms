@@ -13,6 +13,10 @@ const listCampaigns = async (): Promise<CmsListCampaignsPayload[]> => {
   });
 };
 
+/**
+ * Get latest email
+ * @returns {Promise<Email | null>}
+ */
 const getLatestEmail = async () => {
   return prisma.email.findFirst({
     orderBy: {
@@ -21,6 +25,11 @@ const getLatestEmail = async () => {
   });
 };
 
+/**
+ * Create an email template
+ * @param {Object} email - Email object
+ * @returns {Promise<Email>}
+ */
 const createEmail = async (
   editedBy: string,
   subject: string,
@@ -44,8 +53,21 @@ const createEmail = async (
   });
 };
 
+/**
+ * List email templates
+ * @returns {Promise<Email[]>}
+ */
+const listEmailTemplates = async (): Promise<Email[]> => {
+  return prisma.email.findMany({
+    orderBy: {
+      version: "desc",
+    },
+  });
+};
+
 export default {
   listCampaigns,
   getLatestEmail,
   createEmail,
+  listEmailTemplates,
 };

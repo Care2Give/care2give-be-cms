@@ -1,6 +1,5 @@
 import express from "express";
 import campaignRoute from "./campaign.route";
-import emailRoute from "./email.route";
 import cmsRoute from "./cms.route";
 import docsRoute from "./docs.route";
 import config from "../../config/config";
@@ -11,10 +10,6 @@ const defaultRoutes = [
   {
     path: "/campaign",
     route: campaignRoute,
-  },
-  {
-    path: "/email",
-    route: emailRoute,
   },
   {
     path: "/cms",

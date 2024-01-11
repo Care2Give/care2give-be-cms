@@ -7,6 +7,7 @@ import {
 } from "@clerk/clerk-sdk-node";
 import clerkValidateOrigin from "../../middlewares/clerkValidateOrigin";
 import { cmsController } from "../../controllers";
+import { emailValidation } from "../../validations";
 
 declare global {
   namespace Express {
@@ -19,12 +20,19 @@ router.use(ClerkExpressRequireAuth());
 router.use(clerkValidateOrigin);
 
 router.get("/", (req: RequireAuthProp<Request>, res) => {
-  // console.log(req.auth);
   res.send("Hello World");
 });
 
 router.get("/campaigns", cmsController.listCampaigns);
 
-router.get("/email-editor", cmsController.getLatestEmail);
-router.post("/email-editor", cmsController.createEmail);
+router
+  .route("/email-editor")
+  .get(cmsController.getLatestEmail)
+  .post(
+    validate(emailValidation.createEmailTemplate),
+    cmsController.createEmail
+  );
+
+router.get("/email-editor/version-history", cmsController.listEmailTemplates);
+
 export default router;

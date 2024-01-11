@@ -1,35 +1,37 @@
-import express from "express";
-import validate from "../../middlewares/validate";
-import { emailValidation } from "../../validations";
-import { emailController } from "../../controllers";
-import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
-import clerkValidateOrigin from "../../middlewares/clerkValidateOrigin";
+// NOT BEING USED. EMAIL ROUTES SHOULD ONLY BE USED BY THE CMS. SO IT SHOULD BE ON CMS.ROUTE.TS
 
-const router = express.Router();
+// import express from "express";
+// import validate from "../../middlewares/validate";
+// import { emailValidation } from "../../validations";
+// import { emailController } from "../../controllers";
+// import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
+// import clerkValidateOrigin from "../../middlewares/clerkValidateOrigin";
 
-router.use(ClerkExpressRequireAuth());
-router.use(clerkValidateOrigin);
+// const router = express.Router();
 
-router.get("/ping", (_, res) => {
-  res.send("Hello from email route!");
-});
+// router.use(ClerkExpressRequireAuth());
+// router.use(clerkValidateOrigin);
 
-router.post(
-  "/",
-  validate(emailValidation.createEmailTemplate),
-  emailController.createEmailTemplate
-);
+// router.get("/ping", (_, res) => {
+//   res.send("Hello from email route!");
+// });
 
-router.get("/", emailController.getLatestEmailTemplate);
+// router.post(
+//   "/",
+//   validate(emailValidation.createEmailTemplate),
+//   emailController.createEmailTemplate
+// );
 
-// All emails page
-router.get("/list", emailController.listEmailTemplates);
+// router.get("/", emailController.getLatestEmailTemplate);
 
-// Get email by id
-router.get(
-  "/:emailId",
-  validate(emailValidation.findEmailTemplateById),
-  emailController.findEmailTemplateById
-);
+// // All emails page
+// router.get("/list", emailController.listEmailTemplates);
 
-export default router;
+// // Get email by id
+// router.get(
+//   "/:emailId",
+//   validate(emailValidation.findEmailTemplateById),
+//   emailController.findEmailTemplateById
+// );
+
+// export default router;

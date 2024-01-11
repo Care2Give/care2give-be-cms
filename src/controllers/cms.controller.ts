@@ -25,14 +25,11 @@ const listCampaigns = catchAsync(async (_, res) => {
 const getLatestEmail = catchAsync(async (_, res) => {
   const latestEmail = await cmsService.getLatestEmail();
   const userId = latestEmail?.editedBy;
-  if (userId) {
-    const user = await clerkClient.users.getUser(userId);
-    res
-      .status(httpStatus.OK)
-      .send({ ...latestEmail, firstName: user.firstName });
-  } else {
+  if (!userId) {
     throw new ApiError(httpStatus.NOT_FOUND, "Email not found");
   }
+  const user = await clerkClient.users.getUser(userId);
+  res.status(httpStatus.OK).send({ ...latestEmail, firstName: user.firstName });
 });
 
 const createEmail = catchAsync(async (req, res) => {
@@ -46,8 +43,24 @@ const createEmail = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(email);
 });
 
+const listEmailTemplates = catchAsync(async (req, res) => {
+  const emails = await cmsService.listEmailTemplates();
+  const userId = emails.map((email) => email.editedBy);
+  const users = await clerkClient.users.getUserList({
+    userId,
+  });
+  const result = emails.map((email) => {
+    return {
+      ...email,
+      firstName: users.find((user) => user.id === email.editedBy)?.firstName,
+    };
+  });
+  res.status(httpStatus.OK).send(result);
+});
+
 export default {
   listCampaigns,
   getLatestEmail,
   createEmail,
+  listEmailTemplates,
 };
