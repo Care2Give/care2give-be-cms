@@ -8,9 +8,9 @@ import clerkClient from "@clerk/clerk-sdk-node";
 const createEmailTemplate = catchAsync(async (req, res) => {
   const { editedBy, subject, content } = req.body;
   const email = await emailService.createEmailTemplate(
-    editedBy,
     unescapeHtml(subject),
-    unescapeHtml(content)
+    unescapeHtml(content),
+    editedBy
   );
   res.status(httpStatus.CREATED).send(email);
 });
@@ -32,6 +32,8 @@ const findEmailTemplateById = catchAsync(async (req, res) => {
 const getLatestEmailTemplate = catchAsync(async (_, res) => {
   const latestEmail = await emailService.getLatestEmailTemplate();
   const userId = latestEmail?.editedBy;
+  console.log("userId", userId);
+  console.log("latestEmail", latestEmail);
   if (!userId) {
     throw new ApiError(httpStatus.NOT_FOUND, "Email not found");
   }
