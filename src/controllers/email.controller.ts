@@ -3,6 +3,7 @@ import catchAsync from "../utils/catchAsync";
 import ApiError from "../utils/ApiError";
 import { emailService } from "../services";
 import unescapeHtml from "../utils/unescapeHtml";
+import clerkClient from "@clerk/clerk-sdk-node";
 
 const createEmailTemplate = catchAsync(async (req, res) => {
   const { editedBy, subject, content } = req.body;
@@ -30,10 +31,12 @@ const findEmailTemplateById = catchAsync(async (req, res) => {
 
 const getLatestEmailTemplate = catchAsync(async (_, res) => {
   const latestEmail = await emailService.getLatestEmailTemplate();
-  if (!latestEmail) {
+  const userId = latestEmail?.editedBy;
+  if (!userId) {
     throw new ApiError(httpStatus.NOT_FOUND, "Email not found");
   }
-  res.status(httpStatus.OK).send(latestEmail);
+  const user = await clerkClient.users.getUser(userId);
+  res.status(httpStatus.OK).send({ ...latestEmail, firstName: user.firstName });
 });
 
 export default {

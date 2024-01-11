@@ -53,20 +53,11 @@ const findEmailTemplateById = async (
 };
 
 const getLatestEmailTemplate = async () => {
-  const maxVersion = await prisma.email
-    .aggregate({
-      _max: {
-        version: true,
-      },
-    })
-    .then((res) => res._max.version);
-  return maxVersion
-    ? prisma.email.findFirst({
-        where: {
-          version: maxVersion,
-        },
-      })
-    : null;
+  return prisma.email.findFirst({
+    orderBy: {
+      version: "desc",
+    },
+  });
 };
 
 export default {
