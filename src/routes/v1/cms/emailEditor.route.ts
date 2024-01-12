@@ -6,13 +6,12 @@ import emailEditorValidation from "../../../validations/cms/emailEditor.validati
 const router = express.Router();
 
 router.get("/", emailEditorController.getLatestEmail);
+router.get("/version-history", emailEditorController.listEmailTemplates);
 
 router.post(
   "/",
   validate(emailEditorValidation.createEmailTemplate),
   emailEditorController.createEmail
 );
-
-router.post("/version-history", emailEditorController.listEmailTemplates);
 
 export default router;
