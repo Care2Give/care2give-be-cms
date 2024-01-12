@@ -13,7 +13,8 @@
     "prettier:fix": "prettier --write **/*.ts",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "build": "rimraf build && tsc -p tsconfig.json"
+    "build": "rimraf build && tsc -p tsconfig.json",
+    "rimraf": "./node_modules/rimraf/bin.js"
   },
   "prisma": {
     "seed": "ts-node --transpile-only prisma/seed.ts"
