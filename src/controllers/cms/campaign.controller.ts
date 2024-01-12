@@ -1,11 +1,11 @@
 import clerkClient, { RequireAuthProp } from "@clerk/clerk-sdk-node";
 import catchAsync from "../../utils/catchAsync";
 import httpStatus from "http-status";
-import cmsCampaignsService from "../../services/cms/campaigns.service";
+import cmsCampaignService from "../../services/cms/campaign.service";
 import s3 from "../../s3Client";
 
 const listCampaigns = catchAsync(async (req, res) => {
-  const campaigns = await cmsCampaignsService.listCampaigns();
+  const campaigns = await cmsCampaignService.listCampaigns();
   const userId = campaigns.map((campaign) => campaign.editedBy);
   const users = await clerkClient.users.getUserList({
     userId,
@@ -31,7 +31,7 @@ const createCampaign = catchAsync(async (req, res) => {
       imageUrl: imageUrl,
     };
   }
-  const campaign = await cmsCampaignsService.createCampaign(data);
+  const campaign = await cmsCampaignService.createCampaign(data);
   res.status(httpStatus.CREATED).send(campaign);
 });
 

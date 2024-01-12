@@ -7,7 +7,7 @@ import {
 import clerkValidateOrigin from "../../middlewares/clerkValidateOrigin";
 import campaignRouter from "./cms/campaign.route";
 import donationRouter from "./cms/donation.route";
-import emailRouter from "./cms/email.route";
+import emailEditorRouter from "./cms/emailEditor.route";
 
 declare global {
   namespace Express {
@@ -27,7 +27,7 @@ const cmsRoutes = [
   },
   {
     path: "/email-editor",
-    route: emailRouter,
+    route: emailEditorRouter,
   },
 ];
 
