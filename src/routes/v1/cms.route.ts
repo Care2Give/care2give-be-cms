@@ -6,7 +6,7 @@ import {
   StrictAuthProp,
 } from "@clerk/clerk-sdk-node";
 import clerkValidateOrigin from "../../middlewares/clerkValidateOrigin";
-import { cmsController } from "../../controllers";
+import campaignRouter from "./cms/campaigns.route";
 
 declare global {
   namespace Express {
@@ -14,6 +14,13 @@ declare global {
   }
 }
 const router = express.Router();
+
+const cmsRoutes = [
+  {
+    path: "/campaigns",
+    route: campaignRouter,
+  },
+];
 
 router.use(ClerkExpressRequireAuth());
 router.use(clerkValidateOrigin);
@@ -28,5 +35,8 @@ router.get("/", (req: RequireAuthProp<Request>, res) => {
   res.send("Hello World");
 });
 
-router.get("/campaigns", cmsController.listCampaigns);
+cmsRoutes.forEach(({ path, route }) => {
+  router.use(path, route);
+});
+
 export default router;
