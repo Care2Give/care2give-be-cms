@@ -2,7 +2,7 @@ import clerkClient, { RequireAuthProp } from "@clerk/clerk-sdk-node";
 import catchAsync from "../../utils/catchAsync";
 import httpStatus from "http-status";
 import cmsCampaignService from "../../services/cms/campaign.service";
-import s3 from "../../s3Client";
+import s3 from "../../aws/s3Client";
 
 const listCampaigns = catchAsync(async (req, res) => {
   const campaigns = await cmsCampaignService.listCampaigns();

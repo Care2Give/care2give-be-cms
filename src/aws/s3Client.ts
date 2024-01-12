@@ -1,5 +1,5 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import * as Constants from "./constants";
+import * as Constants from "../constants";
 import { randomUUID } from "crypto";
 
 class S3 {
