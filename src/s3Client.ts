@@ -29,7 +29,7 @@ class S3 {
    * @param files
    * @returns Promise of url in order of upload
    */
-  async sendManyToS3(files: Express.Multer.File[]): Promise<string[]> {
+  async sendManyToS3(files: Express.Multer.File[]) {
     return await Promise.all(
       Array.from({ length: files.length }).map(async (_, i) => {
         const { buffer, mimetype } = files[i];
