@@ -1,19 +1,11 @@
 import { PrismaClient } from "@prisma/client";
-import { createCipheriv, randomBytes } from "crypto";
-
-const encryptNric = (nric: string) => {
-  const algorithm = "aes-256-gcm";
-  const key = randomBytes(32);
-  const iv = randomBytes(16);
-  const cipher = createCipheriv(algorithm, key, iv);
-  let encrypted = cipher.update(nric, "utf8", "hex");
-  encrypted += cipher.final("hex");
-  return encrypted;
-};
+import Encrypter from "../src/utils/Encrypter";
+import "dotenv/config";
 
 const prisma = new PrismaClient();
 
 async function main() {
+  const encrypter = new Encrypter(process.env.ENCRYPTION_SECRET as string);
   // SEED CAMPAIGNS
   const campaignOne = await prisma.campaign.create({
     data: {
@@ -187,7 +179,7 @@ async function main() {
       donorFirstName: "John",
       donorLastName: "Doe",
       donorEmail: "johndoe@gmail.com",
-      donorNricA: encryptNric("S1234567A"),
+      donorNricA: encrypter.encrypt("S1234"),
       donorNricB: "567A",
       donorTrainingPrograms: ["A", "B"],
       currency: "SGD",
@@ -230,7 +222,7 @@ async function main() {
       donorFirstName: "John",
       donorLastName: "Doe",
       donorEmail: "johndoe@gmail.com",
-      donorNricA: encryptNric("S1234567A"),
+      donorNricA: encrypter.encrypt("S1234"),
       donorNricB: "567A",
       donorTrainingPrograms: ["A", "B"],
       dollars: 1000,

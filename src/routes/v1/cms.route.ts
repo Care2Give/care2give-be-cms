@@ -1,12 +1,13 @@
 import express, { NextFunction, Request, Response } from "express";
-import validate from "../../middlewares/validate";
 import {
   ClerkExpressRequireAuth,
   RequireAuthProp,
   StrictAuthProp,
 } from "@clerk/clerk-sdk-node";
 import clerkValidateOrigin from "../../middlewares/clerkValidateOrigin";
-import campaignRouter from "./cms/campaigns.route";
+import campaignRouter from "./cms/campaign.route";
+import donationRouter from "./cms/donation.route";
+import emailRouter from "./cms/email.route";
 
 declare global {
   namespace Express {
@@ -20,6 +21,14 @@ const cmsRoutes = [
     path: "/campaigns",
     route: campaignRouter,
   },
+  {
+    path: "/donations",
+    route: donationRouter,
+  },
+  {
+    path: "/email-editor",
+    route: emailRouter,
+  },
 ];
 
 router.use(
@@ -32,7 +41,6 @@ router.use(
 router.use(clerkValidateOrigin);
 
 router.get("/", (req: RequireAuthProp<Request>, res) => {
-  // console.log(req.auth);
   res.send("Hello World");
 });
 
