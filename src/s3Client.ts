@@ -50,7 +50,7 @@ class S3 {
    */
   async sendToS3(filePath: string, fileBuffer: Buffer, contentType: string) {
     console.log(
-      `Sending to S3 bucket [${this.bucketName}]: [${filePath}] with contentType [${contentType}]`
+      `Sending to S3 bucket [${this.bucketName}]: path [${filePath}] with contentType [${contentType}]`
     );
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
@@ -60,7 +60,7 @@ class S3 {
     });
     await s3.client.send(command);
     console.log(
-      `Successfully sent to S3 bucket [${this.bucketName}]: ${filePath}`
+      `Successfully sent to S3 bucket [${this.bucketName}]: path [${filePath}]`
     );
   }
 
