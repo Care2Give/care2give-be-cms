@@ -7,6 +7,18 @@ import {
 import ApiError from "../utils/ApiError";
 import httpStatus from "http-status";
 
+const listDonations = async () => {
+  return prisma.donation.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+};
+
+/**
+ * List campaigns
+ * @returns {Promise<CmsListCampaignsPayload[]>}
+ */
 const listCampaigns = async (): Promise<CmsListCampaignsPayload[]> => {
   return prisma.campaign.findMany({
     select: cmsListCampaignsSelect,
@@ -66,6 +78,7 @@ const listEmailTemplates = async (): Promise<Email[]> => {
 };
 
 export default {
+  listDonations,
   listCampaigns,
   getLatestEmail,
   createEmail,

@@ -23,6 +23,8 @@ router.get("/", (req: RequireAuthProp<Request>, res) => {
   res.send("Hello World");
 });
 
+router.get("/donations", cmsController.listDonations);
+
 router.get("/campaigns", cmsController.listCampaigns);
 
 router

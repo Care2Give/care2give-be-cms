@@ -5,6 +5,8 @@ import cmsService from "../services/cms.service";
 import ApiError from "../utils/ApiError";
 import unescapeHtml from "../utils/unescapeHtml";
 
+const listDonations = catchAsync(async (_, res) => {});
+
 const listCampaigns = catchAsync(async (_, res) => {
   const campaigns = await cmsService.listCampaigns();
   const userId = campaigns.map((campaign) => campaign.editedBy);
@@ -59,6 +61,7 @@ const listEmailTemplates = catchAsync(async (req, res) => {
 });
 
 export default {
+  listDonations,
   listCampaigns,
   getLatestEmail,
   createEmail,
