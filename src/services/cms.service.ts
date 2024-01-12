@@ -12,6 +12,9 @@ const listDonations = async () => {
     orderBy: {
       createdAt: "desc",
     },
+    include: {
+      campaign: true,
+    },
   });
 };
 

@@ -4,8 +4,27 @@ import httpStatus from "http-status";
 import cmsService from "../services/cms.service";
 import ApiError from "../utils/ApiError";
 import unescapeHtml from "../utils/unescapeHtml";
+import Encrypter from "../utils/Encrypter";
+import "dotenv/config";
 
-const listDonations = catchAsync(async (_, res) => {});
+const listDonations = catchAsync(async (_, res) => {
+  const encrypter = new Encrypter(process.env.ENCRYPTION_SECRET as string);
+  const donations = await cmsService.listDonations();
+  const result = donations.map(
+    ({ donorNricA, donorNricB, campaignId, ...donation }) => {
+      if (donorNricA && donorNricB) {
+        return {
+          ...donation,
+          nric: `${encrypter.dencrypt(donorNricA)}${donorNricB}`,
+        };
+      }
+      return {
+        ...donation,
+      };
+    }
+  );
+  res.status(httpStatus.OK).send(result);
+});
 
 const listCampaigns = catchAsync(async (_, res) => {
   const campaigns = await cmsService.listCampaigns();
