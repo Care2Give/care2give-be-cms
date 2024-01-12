@@ -44,7 +44,6 @@ class S3 {
   /**
    * Helper function to upload a single file in Multer (middleware) in-memory storage to S3
    * NOTE: images will be overwritten if filePath is same
-   * @param bucketName
    * @param filePath
    * @param fileBuffer
    * @param contentType
