@@ -9,6 +9,9 @@ import {
 const listCampaigns = async (): Promise<CmsListCampaignsPayload[]> => {
   return prisma.campaign.findMany({
     select: cmsListCampaignsSelect,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 };
 

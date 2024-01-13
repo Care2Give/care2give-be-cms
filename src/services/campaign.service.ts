@@ -55,6 +55,9 @@ const listCampaigns = async (): Promise<ListCampaignsPayload[]> => {
       status: "ACTIVE",
     },
     select: listCampaignsSelect,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 };
 
