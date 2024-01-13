@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import prisma from "../../client";
 import ApiError from "../../utils/ApiError";
 import { Email } from "@prisma/client";
+import { transporter } from "../../aws/sesClient";
 
 /**
  * Get latest email
@@ -55,8 +56,44 @@ const listEmailTemplates = async (): Promise<Email[]> => {
   });
 };
 
+const sendEmail = async (
+  recipients: string[],
+  subject: string,
+  content: string
+) => {
+  if (!recipients || recipients.length === 0) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Recipients is required");
+  }
+  if (!subject) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Subject is required");
+  }
+  if (!content) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Content is required");
+  }
+  console.log(`Sending email to ${recipients} with subject ${subject}`);
+
+  transporter.sendMail(
+    {
+      from: process.env.SES_EMAIL_FROM || "care2givetech@outlook.sg",
+      to: recipients,
+      subject: subject,
+      html: content,
+    },
+    (err, info) => {
+      if (err) {
+        console.log(err);
+        throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, err.message);
+      } else {
+        console.log(info.envelope);
+        console.log(info.messageId);
+      }
+    }
+  );
+};
+
 export default {
   getLatestEmail,
   createEmail,
   listEmailTemplates,
+  sendEmail,
 };

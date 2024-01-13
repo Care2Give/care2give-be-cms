@@ -14,4 +14,10 @@ router.post(
   emailEditorController.createEmail
 );
 
+router.post(
+  "/send",
+  validate(emailEditorValidation.sendEmail),
+  emailEditorController.sendEmail
+);
+
 export default router;

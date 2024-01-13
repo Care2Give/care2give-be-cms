@@ -14,7 +14,16 @@ const findEmailTemplateById = {
   }),
 };
 
+const sendEmail = {
+  body: Joi.object().keys({
+    recipients: Joi.array().items(Joi.string().email()).required().min(1),
+    subject: Joi.string().required(),
+    content: Joi.string().required(),
+  }),
+};
+
 export default {
   createEmailTemplate,
   findEmailTemplateById,
+  sendEmail,
 };
