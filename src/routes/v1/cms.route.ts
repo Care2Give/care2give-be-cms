@@ -1,13 +1,13 @@
-import express, { Request } from "express";
-import validate from "../../middlewares/validate";
+import express, { NextFunction, Request, Response } from "express";
 import {
   ClerkExpressRequireAuth,
   RequireAuthProp,
   StrictAuthProp,
 } from "@clerk/clerk-sdk-node";
 import clerkValidateOrigin from "../../middlewares/clerkValidateOrigin";
-import { cmsController } from "../../controllers";
-import { emailValidation } from "../../validations";
+import campaignRouter from "./cms/campaign.route";
+import donationRouter from "./cms/donation.route";
+import emailEditorRouter from "./cms/emailEditor.route";
 
 declare global {
   namespace Express {
@@ -16,25 +16,36 @@ declare global {
 }
 const router = express.Router();
 
-router.use(ClerkExpressRequireAuth());
+const cmsRoutes = [
+  {
+    path: "/campaigns",
+    route: campaignRouter,
+  },
+  {
+    path: "/donations",
+    route: donationRouter,
+  },
+  {
+    path: "/email-editor",
+    route: emailEditorRouter,
+  },
+];
+
+router.use(
+  ClerkExpressRequireAuth(),
+  (err: Error, req: Request, res: Response, next: NextFunction) => {
+    console.error(err.stack);
+    res.status(401).send("Unauthenticated!");
+  }
+);
 router.use(clerkValidateOrigin);
 
 router.get("/", (req: RequireAuthProp<Request>, res) => {
   res.send("Hello World");
 });
 
-router.get("/donations", cmsController.listDonations);
-
-router.get("/campaigns", cmsController.listCampaigns);
-
-router
-  .route("/email-editor")
-  .get(cmsController.getLatestEmail)
-  .post(
-    validate(emailValidation.createEmailTemplate),
-    cmsController.createEmail
-  );
-
-router.get("/email-editor/version-history", cmsController.listEmailTemplates);
+cmsRoutes.forEach(({ path, route }) => {
+  router.use(path, route);
+});
 
 export default router;

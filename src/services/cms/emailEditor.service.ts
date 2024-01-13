@@ -1,34 +1,7 @@
-import { Email, Prisma } from "@prisma/client";
-import prisma from "../client";
-import {
-  CmsListCampaignsPayload,
-  cmsListCampaignsSelect,
-} from "../types/CmsListCampaignsSelect";
-import ApiError from "../utils/ApiError";
 import httpStatus from "http-status";
-
-const listDonations = async (): Promise<
-  Array<Prisma.DonationGetPayload<{ include: { campaign: true } }>>
-> => {
-  return prisma.donation.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      campaign: true,
-    },
-  });
-};
-
-/**
- * List campaigns
- * @returns {Promise<CmsListCampaignsPayload[]>}
- */
-const listCampaigns = async (): Promise<CmsListCampaignsPayload[]> => {
-  return prisma.campaign.findMany({
-    select: cmsListCampaignsSelect,
-  });
-};
+import prisma from "../../client";
+import ApiError from "../../utils/ApiError";
+import { Email } from "@prisma/client";
 
 /**
  * Get latest email
@@ -83,8 +56,6 @@ const listEmailTemplates = async (): Promise<Email[]> => {
 };
 
 export default {
-  listDonations,
-  listCampaigns,
   getLatestEmail,
   createEmail,
   listEmailTemplates,
