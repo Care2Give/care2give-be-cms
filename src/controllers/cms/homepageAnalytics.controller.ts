@@ -1,42 +1,33 @@
 import catchAsync from "../../utils/catchAsync";
 import httpStatus from "http-status";
-import { campaignService } from "../../services";
 import cmsDonationService from "../../services/cms/donation.service";
 import { $Enums } from "@prisma/client";
 
 
 // gets the total donations across all campaigns
 const totalDonationAmount = catchAsync(async (_, res) => {
-  const campaignsWithDonations = await campaignService.listCampaigns();
-  const totalAmount = campaignsWithDonations.map((campaign) => {
-    const currentAmount = campaign.donations.reduce((acc, donation) => {
-      return acc + donation.dollars + donation.cents / 100;
-    }, 0);
-    return currentAmount
-  }).reduce((sum, current) => sum + current, 0);
+  const donations = await cmsDonationService.listDonations();
+  const totalAmount = donations.reduce((acc, donation) => {
+    return acc + donation.dollars + donation.cents / 100
+  }, 0)
 
   res.status(httpStatus.OK).send({totalAmount});
 });
 
 // gets the total number of donations across all campaigns
 const totalDonorNumber = catchAsync(async (_, res) => {
-  const campaignsWithDonations = await campaignService.listCampaigns();
-  const totalDonors = campaignsWithDonations.map(campaign => {
-    return campaign.donations;
-  }).length;
+  const donations = await cmsDonationService.listDonations();
+  const donorNumber = donations.length
 
-  res.status(httpStatus.OK).send({totalDonors});
+  res.status(httpStatus.OK).send({donorNumber});
 });
 
 // gets the highest amount donated in a single donation across all campaigns
 const highestDonationAmount = catchAsync(async (_, res) => {
-  const campaignsWithDonations = await campaignService.listCampaigns();
-  const highestAmount = campaignsWithDonations.map((campaign) => {
-    const currentAmount = campaign.donations.reduce((acc, donation) => {
-      return acc + donation.dollars + donation.cents / 100;
-    }, 0);
-    return currentAmount
-  }).reduce((prev, current) => {
+  const donations = await cmsDonationService.listDonations();
+  const highestAmount = donations.map(
+    donation => donation.dollars + donation.cents / 100
+  ).reduce((prev, current) => {
     return (prev && prev > current) ? prev : current
   });
 
