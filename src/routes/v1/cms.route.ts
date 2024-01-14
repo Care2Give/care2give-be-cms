@@ -8,6 +8,7 @@ import clerkValidateOrigin from "../../middlewares/clerkValidateOrigin";
 import campaignRouter from "./cms/campaign.route";
 import donationRouter from "./cms/donation.route";
 import emailEditorRouter from "./cms/emailEditor.route";
+import homepageAnalyticsRouter from "./cms/homepageAnalytics.route";
 
 declare global {
   namespace Express {
@@ -29,6 +30,10 @@ const cmsRoutes = [
     path: "/email-editor",
     route: emailEditorRouter,
   },
+  {
+    path: "/homepage-analytics",
+    route: homepageAnalyticsRouter
+  }
 ];
 
 router.use(
