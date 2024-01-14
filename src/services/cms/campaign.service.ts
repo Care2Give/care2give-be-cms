@@ -23,7 +23,32 @@ const createCampaign = async (
   });
 };
 
+const queryCampaign = async (id: string) => {
+  return prisma.campaign.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      donationAmounts: true,
+    },
+  });
+};
+
+const updateCampaign = async (
+  id: string,
+  payload: Prisma.CampaignUpdateInput
+) => {
+  return prisma.campaign.update({
+    where: {
+      id,
+    },
+    data: payload,
+  });
+};
+
 export default {
   listCampaigns,
   createCampaign,
+  queryCampaign,
+  updateCampaign,
 };

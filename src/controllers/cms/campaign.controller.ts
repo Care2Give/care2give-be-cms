@@ -3,6 +3,7 @@ import catchAsync from "../../utils/catchAsync";
 import httpStatus from "http-status";
 import cmsCampaignService from "../../services/cms/campaign.service";
 import s3 from "../../aws/s3Client";
+import ApiError from "../../utils/ApiError";
 
 const listCampaigns = catchAsync(async (req, res) => {
   const campaigns = await cmsCampaignService.listCampaigns();
@@ -35,7 +36,23 @@ const createCampaign = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(campaign);
 });
 
+const queryCampaign = catchAsync(async (req, res) => {
+  const campaign = await cmsCampaignService.queryCampaign(req.params.id);
+  if (!campaign) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Campaign not found");
+  }
+  res.status(httpStatus.OK).send(campaign);
+});
+
+const updateCampaign = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const campaign = await cmsCampaignService.updateCampaign(id, req.body);
+  res.status(httpStatus.OK).send(campaign);
+});
+
 export default {
   listCampaigns,
   createCampaign,
+  queryCampaign,
+  updateCampaign,
 };
