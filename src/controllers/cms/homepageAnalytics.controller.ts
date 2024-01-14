@@ -114,9 +114,7 @@ const mostPopularAmount = catchAsync(async (req, res) => {
 
   // count the number of donation amounts across all campaigns
   donations.forEach(donation => {
-    const donationAmount = donations.reduce((acc, donation) => {
-      return acc + donation.dollars + donation.cents / 100;
-    }, 0);
+    const donationAmount = donation.dollars + donation.cents / 100;
 
     if (amountMap.has(donationAmount)) {
       const currentVal = amountMap.get(donationAmount)
@@ -178,15 +176,16 @@ const dailyDonations = catchAsync(async (req, res) => {
   // count the number of donation amounts across all campaigns
   donations.forEach(donation => {
     const donationDate = donation.createdAt.toISOString().slice(0, 10)
+    const donationAmount = donation.dollars + donation.cents / 100;
     if (dateMap.has(donationDate)) {
       const currentVal = dateMap.get(donationDate)
       if (currentVal !== undefined) {
-        dateMap.set(donationDate, currentVal + 1)
+        dateMap.set(donationDate, currentVal + donationAmount)
       } else {
         throw new Error('Amount is undefined');
       }
     } else {
-      dateMap.set(donationDate, 1)
+      dateMap.set(donationDate, donationAmount)
     }
   })
   
