@@ -76,6 +76,10 @@ const mostPopularCampaign = catchAsync(async (req, res) => {
   // filters for the donations according to the time parameter
   const donations = await getValidDonations(filter)
 
+  if (donations.length == 0) {
+    throw new Error ("no donations have been made" + filter)
+  }
+
   const campaignMap = new Map<string, number>();
 
   // count the number of donations for each campaign
@@ -109,6 +113,10 @@ const mostPopularAmount = catchAsync(async (req, res) => {
 
   // filters for the donations according to the time parameter
   const donations = await getValidDonations(filter)
+
+  if (donations.length == 0) {
+    throw new Error ("no donations have been made" + filter)
+  }
 
   const amountMap = new Map<number, number>();
 
