@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get("/", donationController.listDonations);
 router.get("/campaigns", donationController.getCampaignNames);
+<<<<<<< Updated upstream
 
 router.post(
   "/export",
@@ -19,5 +20,7 @@ router.post(
   validate(donationValidation.exportDonations),
   donationController.listExportedDonations
 )
+=======
+>>>>>>> Stashed changes
 
 export default router;
