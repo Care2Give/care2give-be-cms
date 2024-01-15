@@ -5,4 +5,6 @@ const router = express.Router();
 
 router.get("/", donationController.listDonations);
 
+router.get("/export", donationController.exportDonationsToCsv)
+
 export default router;
