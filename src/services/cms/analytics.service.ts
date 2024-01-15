@@ -6,30 +6,35 @@ import {
 } from "../../types/SelectDonationByDate"
 import { DurationFilter } from "../../types/DurationFilter";
 
-const listCampaigns = async (duration: DurationFilter): Promise<CampaignAndDonationsPayload[]> => {
-    let middleDate: Date, startDate: Date | null;
+const listCampaigns = async (startDate: Date | null, endDate: Date): Promise<CampaignAndDonationsPayload[]> => {
+    return prisma.campaign.findMany({
+        select: getFindCampaignDonationsByDate(startDate, endDate),
+        orderBy: {
+            createdAt: "desc",
+        }
+    });;
+};
+
+
+const getMostPopularAmounts = async (duration: DurationFilter): Promise<CampaignAndDonationsPayload[]> => {
+    let startDate: Date | null;
     let endDate: Date = new Date();
     // TODO clarify exactly on how trends are calculated - especially when allTime is selected
     switch (duration) {
         case DurationFilter.Daily:
             startDate = getTwoDaysAgo();
-            middleDate = getOneDayAgo();
             break;
         case DurationFilter.Weekly:
             startDate = getTwoWeekAgo();
-            middleDate = getOneWeekAgo();
             break;
         case DurationFilter.Monthly:
             startDate = getFirstDayOfLastMonth();
-            middleDate = getFirstDayOfThisMonth();
             break;
         case DurationFilter.Yearly:
             startDate = getFirstDayOfLastYear();
-            middleDate = getFirstDayOfYear();
             break;
         case DurationFilter.AllTime:
             startDate = null;
-            middleDate = getFirstDayOfLastYear();
             break;
     }
 
@@ -56,61 +61,9 @@ const listCampaigns = async (duration: DurationFilter): Promise<CampaignAndDonat
         })
     })
     return campaigns;
-};
-
-const getOneDayAgo = () => {
-    const yesterdayDate: Date = new Date();
-    yesterdayDate.setDate(new Date().getDate() - 1);
-    return yesterdayDate;
-}
-
-const getTwoDaysAgo = () => {
-    const date: Date = new Date();
-    date.setDate(new Date().getDate() - 2);
-    return date;
-}
-
-const getOneWeekAgo = () => {
-    const lastWeekDate: Date = new Date();
-    lastWeekDate.setDate(new Date().getDate() - 7);
-    return lastWeekDate;
-}
-
-const getTwoWeekAgo = () => {
-    const lastWeekDate: Date = new Date();
-    lastWeekDate.setDate(new Date().getDate() - 14);
-    return lastWeekDate;
-}
-
-const getFirstDayOfThisMonth = () => {
-    const date = new Date();
-    date.setDate(1);
-    return date;
-}
-
-const getFirstDayOfLastMonth = () => {
-    const date = new Date();
-    date.setDate(1);
-    date.setMonth(date.getMonth() - 1);
-    return date;
-}
-
-const getFirstDayOfYear = () => {
-    const date = new Date();
-    date.setDate(1);
-    date.setMonth(0);
-    return date;
-}
-
-
-const getFirstDayOfLastYear = () => {
-    const date = new Date();
-    date.setDate(1);
-    date.setMonth(0);
-    date.setFullYear(date.getFullYear() - 1);
-    return date;
 }
 
 export default {
     listCampaigns,
+    getMostPopularAmounts,
 };
