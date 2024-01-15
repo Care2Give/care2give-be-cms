@@ -109,6 +109,7 @@ const getMostPopularAmounts = catchAsync(async (req, res) => {
             })
         })
     }) 
+    amounts.sort((amount1, amount2) => amount2.numberOfDonations - amount1.numberOfDonations);
     res.status(httpStatus.OK).send(amounts);
 })
 
