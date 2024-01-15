@@ -3,6 +3,7 @@ import prisma from "../../client";
 import ApiError from "../../utils/ApiError";
 import { Email } from "@prisma/client";
 import { transporter } from "../../aws/sesClient";
+import logger from "../../config/logger";
 
 /**
  * Get latest email
@@ -70,7 +71,6 @@ const sendEmail = async (
   if (!content) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Content is required");
   }
-  console.log(`Sending email to ${recipients} with subject ${subject}`);
 
   transporter.sendMail(
     {
@@ -81,11 +81,10 @@ const sendEmail = async (
     },
     (err, info) => {
       if (err) {
-        console.log(err);
+        logger.error(`Email failed to send: ${err.message}`);
         throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, err.message);
       } else {
-        console.log(info.envelope);
-        console.log(info.messageId);
+        logger.info(`Email sent: ${info.messageId} ${info.response}`);
       }
     }
   );
