@@ -13,4 +13,10 @@ router.post(
   donationController.exportDonationsToXlsx
 )
 
+router.post(
+  "/list-export",
+  validate(donationValidation.exportDonations),
+  donationController.listExportedDonations
+)
+
 export default router;
