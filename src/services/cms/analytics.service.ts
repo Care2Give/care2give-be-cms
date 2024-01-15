@@ -13,6 +13,19 @@ const listCampaignsWithDonations = async (startDate: Date | null, endDate: Date)
     });;
 };
 
+const queryCampaign = async (id: string) => {
+    return prisma.campaign.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        donationAmounts: true,
+        donations: true,
+      },
+    });
+  };
+
 export default {
     listCampaignsWithDonations,
+    queryCampaign
 };

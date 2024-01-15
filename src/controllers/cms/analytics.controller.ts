@@ -3,6 +3,7 @@ import cmsAnalyticsService from "../../services/cms/analytics.service";
 import clerkClient from "@clerk/clerk-sdk-node";
 import httpStatus from "http-status";
 import { DurationFilter } from "../../types/DurationFilter";
+import { DonationType } from "@prisma/client";
 
 const listCampaigns = catchAsync(async (req, res) => {
     const { filter } = req.body;
@@ -113,6 +114,49 @@ const getMostPopularAmounts = catchAsync(async (req, res) => {
     res.status(httpStatus.OK).send(amounts);
 })
 
+const getCampaignInformation = catchAsync(async (req, res) => {
+    const { campaignId } = req.params;
+    const campaign = await cmsAnalyticsService.queryCampaign(campaignId);
+    if (campaign === null) {
+        res.status(httpStatus.NOT_FOUND);
+        return;
+    }
+    const donationTypeMap = new Map<DonationType, number>();
+    const donationAmountMap = new Map<number, number>();
+    campaign.donations.forEach(donation => {
+        if (donationTypeMap.has(donation.donationType)) {
+            const oldCount = donationTypeMap.get(donation.donationType) as number;
+            donationTypeMap.set(donation.donationType, oldCount + 1);
+        } else {
+            donationTypeMap.set(donation.donationType, 1);
+        }
+        const donationAmount = donation.dollars + donation.cents / 100;
+        if (donationAmountMap.has(donationAmount)) {
+            const oldCount = donationAmountMap.get(donationAmount) as number; 
+            donationAmountMap.set(donationAmount, oldCount + 1);
+        } else {
+            donationAmountMap.set(donationAmount, 1);
+        }
+    });
+
+    const campaignInformation = {
+        title: campaign.title,
+        currentAmount: campaign.donations
+            .reduce((total, newDonation) => total + newDonation.dollars + newDonation.cents / 100, 0),
+        highestDonation: campaign.donations.reduce((highestDonation, newDonation) => 
+            newDonation.dollars + newDonation.cents / 100 > highestDonation.dollars + highestDonation.cents / 100
+                ? newDonation
+                : highestDonation
+            ),
+        startDate: campaign.startDate, 
+        endDate: campaign.endDate, 
+        timeLeft: campaign.endDate.getUTCMilliseconds() - new Date().getUTCMilliseconds(),
+        donationTypeMap: JSON.stringify(Object.fromEntries(donationTypeMap)), 
+        donationAmountMap: JSON.stringify(Object.fromEntries(donationAmountMap)),
+    }
+    res.status(httpStatus.OK).send(campaignInformation);
+})
+
 const getOneDayAgo = () => {
     const yesterdayDate: Date = new Date();
     yesterdayDate.setDate(new Date().getDate() - 1);
@@ -166,8 +210,11 @@ const getFirstDayOfLastYear = () => {
     return date;
 }
 
+
+
 export default {
     listCampaigns,
-    getMostPopularAmounts
+    getMostPopularAmounts,
+    getCampaignInformation
 };
 
