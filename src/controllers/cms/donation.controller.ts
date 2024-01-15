@@ -83,15 +83,24 @@ const exportDonationsToXlsx = catchAsync(async (req, res) => {
   const decryptedDonations = decryptDonations(donations);
   const records = prepareExportRecords(decryptedDonations);
 
-  res.status(httpStatus.OK).set({
-    "Content-Disposition": 'attachment; filename="donations.xlsx"',
-  });
+  res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+  res.setHeader("Content-Disposition", "attachment; filename=donations.xlsx");
 
   const workbook = new excelJS.Workbook();
   const worksheet = workbook.addWorksheet("Donations");
   worksheet.columns = DONATIONS_EXPORT_HEADERS;
   records.forEach((record) => worksheet.addRow(record));
-  workbook.xlsx.write(res);
+  return workbook.xlsx
+    .write(res)
+    .then(() => {
+      res.status(httpStatus.OK).end();
+    })
+    .catch(() => res.status(httpStatus.INTERNAL_SERVER_ERROR));
 });
 
 const listExportedDonations = catchAsync(async (req, res) => {

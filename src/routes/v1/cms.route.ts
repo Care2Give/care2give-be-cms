@@ -32,8 +32,8 @@ const cmsRoutes = [
   },
   {
     path: "/homepage-analytics",
-    route: homepageAnalyticsRouter
-  }
+    route: homepageAnalyticsRouter,
+  },
 ];
 
 router.use(
