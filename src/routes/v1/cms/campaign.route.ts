@@ -15,4 +15,9 @@ router.post(
   cmsCampaignController.createCampaign
 );
 
+router
+  .route("/:id")
+  .get(cmsCampaignController.queryCampaign)
+  .patch(cmsCampaignController.updateCampaign);
+
 export default router;
