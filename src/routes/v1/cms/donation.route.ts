@@ -6,6 +6,7 @@ import donationValidation from "../../../validations/cms/donation.validation";
 const router = express.Router();
 
 router.get("/", donationController.listDonations);
+router.get("/campaigns", donationController.getCampaignNames);
 
 router.post(
   "/export",
