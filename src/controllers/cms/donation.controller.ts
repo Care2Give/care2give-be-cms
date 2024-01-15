@@ -3,6 +3,7 @@ import Encrypter from "../../utils/Encrypter";
 import httpStatus from "http-status";
 import donationService from "../../services/cms/donation.service";
 import excelJS from "exceljs";
+import { DONATIONS_EXPORT_HEADERS } from "../../constants";
 
 const listDonations = catchAsync(async (_, res) => {
   const encrypter = new Encrypter(process.env.ENCRYPTION_SECRET as string);
@@ -23,22 +24,10 @@ const listDonations = catchAsync(async (_, res) => {
   res.status(httpStatus.OK).send(result);
 });
 
-const DONATIONS_EXPORT_HEADERS = [
-  {header: 'ID', key: 'id'},
-  {header: 'Date and Time (GMT)', key: 'dateTime', width: 20, style: { numFmt: 'dd/mm/yyyy hhmm AM/PM' }},
-  {header: 'Donor', key: 'donor'},
-  {header: 'Amount', key: 'amount'},
-  {header: 'Campaign', key: 'campaign'},
-  {header: 'Status', key: 'status'},
-  {header: 'Type of Donation', key: 'type'},
-  {header: 'Email', key: 'email'},
-  {header: 'NRIC', key: 'nric'},
-  {header: 'Training Programs', key: 'trainingPrograms'}
-]
-
-const exportDonationsToCsv = catchAsync(async (_, res) => {
+const exportDonationsToXlsx = catchAsync(async (req, res) => {
+  const { campaignIds, startDate, endDate } = req.body;
   const encrypter = new Encrypter(process.env.ENCRYPTION_SECRET as string);
-  const donations = await donationService.listDonations();
+  const donations = await donationService.exportDonations({campaignIds, startDate, endDate});
   const result = donations.map(
     ({ donorNricA, donorNricB, campaignId, ...donation }) => {
       if (donorNricA && donorNricB) {
@@ -81,5 +70,5 @@ const exportDonationsToCsv = catchAsync(async (_, res) => {
 
 export default {
   listDonations,
-  exportDonationsToCsv
+  exportDonationsToXlsx
 };
