@@ -2,31 +2,32 @@ import { Prisma } from "@prisma/client";
 import prisma from "../../client";
 import {
     getFindCampaignDonationsByDate,
-    CampaignAndDonationsPayload, Filter
+    CampaignAndDonationsPayload
 } from "../../types/SelectDonationByDate"
+import { DurationFilter } from "../../types/DurationFilter";
 
-const listCampaigns = async (duration: Filter): Promise<CampaignAndDonationsPayload[]> => {
+const listCampaigns = async (duration: DurationFilter): Promise<CampaignAndDonationsPayload[]> => {
     let middleDate: Date, startDate: Date | null;
     let endDate: Date = new Date();
     // TODO clarify exactly on how trends are calculated - especially when allTime is selected
     switch (duration) {
-        case Filter.Daily:
+        case DurationFilter.Daily:
             startDate = getTwoDaysAgo();
             middleDate = getOneDayAgo();
             break;
-        case Filter.Weekly:
+        case DurationFilter.Weekly:
             startDate = getTwoWeekAgo();
             middleDate = getOneWeekAgo();
             break;
-        case Filter.Monthly:
+        case DurationFilter.Monthly:
             startDate = getFirstDayOfLastMonth();
             middleDate = getFirstDayOfThisMonth();
             break;
-        case Filter.Yearly:
+        case DurationFilter.Yearly:
             startDate = getFirstDayOfLastYear();
             middleDate = getFirstDayOfYear();
             break;
-        case Filter.AllTime:
+        case DurationFilter.AllTime:
             startDate = null;
             middleDate = getFirstDayOfLastYear();
             break;

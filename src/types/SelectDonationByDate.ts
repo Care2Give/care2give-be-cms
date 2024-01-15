@@ -1,13 +1,4 @@
 import { Prisma } from "@prisma/client";
-import {bool, boolean} from "joi";
-
-export enum Filter {
-  Daily= "daily",
-  Weekly = "weekly",
-  Monthly = "monthly",
-  Yearly = "yearly",
-  AllTime = "allTime",
-}
 
 interface CampaignDonationSelect {
   id: boolean,
