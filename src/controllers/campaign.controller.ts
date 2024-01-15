@@ -3,36 +3,6 @@ import { campaignService } from "../services";
 import catchAsync from "../utils/catchAsync";
 import ApiError from "../utils/ApiError";
 
-const createCampaign = catchAsync(async (req, res) => {
-  const {
-    status,
-    startDate,
-    endDate,
-    title,
-    description,
-    currency,
-    dollars,
-    cents,
-    createdBy,
-    editedBy,
-    imageUrl,
-  } = req.body;
-  const campaign = await campaignService.createCampaign(
-    status,
-    startDate,
-    endDate,
-    title,
-    description,
-    currency,
-    dollars,
-    cents,
-    createdBy,
-    editedBy,
-    imageUrl
-  );
-  res.status(httpStatus.CREATED).send(campaign);
-});
-
 // All campaigns page
 const listCampaigns = catchAsync(async (_, res) => {
   const campaignsWithDonations = await campaignService.listCampaigns();
@@ -75,25 +45,7 @@ const findCampaignById = catchAsync(async (req, res) => {
   });
 });
 
-const updateCampaignById = catchAsync(async (req, res) => {
-  const { campaignId } = req.params;
-  const campaign = await campaignService.updateCampaignById(
-    campaignId,
-    req.body
-  );
-  res.status(httpStatus.OK).send(campaign);
-});
-
-const deleteCampaignById = catchAsync(async (req, res) => {
-  const { campaignId } = req.params;
-  await campaignService.deleteCampaignById(campaignId);
-  res.status(httpStatus.NO_CONTENT);
-});
-
 export default {
-  createCampaign,
   listCampaigns,
   findCampaignById,
-  updateCampaignById,
-  deleteCampaignById,
 };

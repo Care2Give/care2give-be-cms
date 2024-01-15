@@ -5,29 +5,14 @@ import { campaignController } from "../../controllers";
 
 const router = express.Router();
 
-router.post(
-  "/create",
-  validate(campaignValidation.createCampaign),
-  campaignController.createCampaign
-);
-
 // All campaigns page
 router.get("/list", campaignController.listCampaigns);
 
-router
-  .route("/:campaignId")
-  .get(
-    validate(campaignValidation.findCampaignById),
-    campaignController.findCampaignById
-  )
-  .patch(
-    validate(campaignValidation.updateCampaignById),
-    campaignController.updateCampaignById
-  )
-  .delete(
-    validate(campaignValidation.deleteCampaignById),
-    campaignController.deleteCampaignById
-  );
+router.get(
+  "/:campaignId",
+  validate(campaignValidation.findCampaignById),
+  campaignController.findCampaignById
+);
 
 export default router;
 

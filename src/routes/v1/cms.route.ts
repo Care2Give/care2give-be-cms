@@ -9,6 +9,7 @@ import campaignRouter from "./cms/campaign.route";
 import donationRouter from "./cms/donation.route";
 import emailEditorRouter from "./cms/emailEditor.route";
 import analyticsRouter from "./cms/analytics.route";
+import homepageAnalyticsRouter from "./cms/homepageAnalytics.route";
 
 declare global {
   namespace Express {
@@ -33,6 +34,10 @@ const cmsRoutes = [
   {
     path: "/analytics",
     route: analyticsRouter,
+  },
+  {
+    path: "/homepage-analytics",
+    route: homepageAnalyticsRouter
   }
 ];
 
