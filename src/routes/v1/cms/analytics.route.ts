@@ -8,4 +8,6 @@ const router = express.Router();
 
 router.get("/campaigns", cmsAnalyticsController.listCampaigns);
 
+router.get("/most-popular-amounts", cmsAnalyticsController.getMostPopularAmounts);
+
 export default router;

@@ -2,14 +2,15 @@ import catchAsync from "../../utils/catchAsync";
 import cmsAnalyticsService from "../../services/cms/analytics.service";
 import clerkClient from "@clerk/clerk-sdk-node";
 import httpStatus from "http-status";
+import { DurationFilter } from "../../types/DurationFilter";
 
 const listCampaigns = catchAsync(async (req, res) => {
-    const { filter: DurationFilter } = req.body;
+    const { filter } = req.body;
     let middleDate: Date;
     let startDate: Date | null = null;
     let endDate: Date = new Date();
     // TODO clarify exactly on how trends are calculated - especially when allTime is selected
-    switch (filter) {
+    switch (filter as DurationFilter) {
         case DurationFilter.Daily:
             startDate = getTwoDaysAgo();
             middleDate = getOneDayAgo();
@@ -32,7 +33,7 @@ const listCampaigns = catchAsync(async (req, res) => {
             break;
     }
 
-    const campaignWithDonations = await cmsAnalyticsService.listCampaigns(startDate, endDate);
+    const campaignWithDonations = await cmsAnalyticsService.listCampaignsWithDonations(startDate, endDate);
 
     const campaigns = (await campaignWithDonations).map(campaign => {
         const currentAmount: number = campaign.donations
@@ -54,8 +55,61 @@ const listCampaigns = catchAsync(async (req, res) => {
 
 const getMostPopularAmounts = catchAsync(async (req, res) => {
     const { filter } = req.body;
-    const mostPopularAmounts = await cmsAnalyticsService.getMostPopularAmounts(filter);
-    res.status(httpStatus.OK).send(mostPopularAmounts);
+    let startDate: Date | null;
+    let endDate: Date = new Date();
+    // TODO clarify exactly on how trends are calculated - especially when allTime is selected
+    switch (filter as DurationFilter) {
+        case DurationFilter.Daily:
+            startDate = getOneDayAgo();
+            break;
+        case DurationFilter.Weekly:
+            startDate = getOneWeekAgo();
+            break;
+        case DurationFilter.Monthly:
+            startDate = getFirstDayOfThisMonth();
+            break;
+        case DurationFilter.Yearly:
+            startDate = getFirstDayOfYear();
+            break;
+        case DurationFilter.AllTime:
+            startDate = null;
+            break;
+    }
+
+    const campaignsWithDonations = await cmsAnalyticsService.listCampaignsWithDonations(startDate, endDate);
+
+    interface DonationAmountByCampaign {
+        campaign: string,
+        amount: number,
+        numberOfDonations: number,
+    }
+
+    const amounts: DonationAmountByCampaign[] = [];
+    campaignsWithDonations.forEach(campaignWithDonation => {
+        const amountMap = new Map<number, number>();
+        campaignWithDonation.donations.forEach(donation => {
+            const donationAmount = donation.dollars + donation.cents / 100;
+            if (amountMap.has(donationAmount)) {
+              const currentVal = amountMap.get(donationAmount)
+              if (currentVal !== undefined) {
+                amountMap.set(donationAmount, currentVal + 1)
+              } else {
+                throw new Error('Amount is undefined');
+              }
+            } else {
+              amountMap.set(donationAmount, 1)
+            }
+        })
+        
+        amountMap.forEach((numDonations, donationAmount) => {
+            amounts.push({
+                campaign: campaignWithDonation.title,
+                amount: donationAmount,
+                numberOfDonations: numDonations
+            })
+        })
+    }) 
+    res.status(httpStatus.OK).send(amounts);
 })
 
 const getOneDayAgo = () => {
@@ -113,5 +167,6 @@ const getFirstDayOfLastYear = () => {
 
 export default {
     listCampaigns,
+    getMostPopularAmounts
 };
 
