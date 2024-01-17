@@ -41,8 +41,19 @@ const listEmailTemplates = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(result);
 });
 
+const sendEmail = catchAsync(async (req, res) => {
+  const { recipients, subject, content } = req.body;
+  await emailEditorService.sendEmail(
+    recipients,
+    unescapeHtml(subject),
+    unescapeHtml(content)
+  );
+  res.status(httpStatus.OK).send();
+});
+
 export default {
   getLatestEmail,
   createEmail,
   listEmailTemplates,
+  sendEmail,
 };
