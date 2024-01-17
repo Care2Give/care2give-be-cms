@@ -26,7 +26,7 @@ const exportDonations = async ({
   endDate
 }: ExportDonationsParams): Promise<Array<Prisma.DonationGetPayload<{include: { campaign: true }}>>> => {
   // Filter the day's records
-  if (startDate.getTime() == endDate.getTime()) {
+  if (startDate.getTime() === endDate.getTime()) {
     endDate.setHours(23)
     endDate.setMinutes(59)
     endDate.setSeconds(59)
