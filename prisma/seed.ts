@@ -55,8 +55,8 @@ async function main() {
       cents: 0,
       createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
       editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
-      imageNames: ["qZNOifk.jpeg"],
-      imageUrls: ["https://i.imgur.com/qZNOifk.jpeg"],
+      imageNames: ["lQGgBef.jpeg"],
+      imageUrls: ["https://i.imgur.com/lQGgBef.jpeg"],
     },
   });
   console.log({ campaignOne, campaignTwo, campaignThree });
