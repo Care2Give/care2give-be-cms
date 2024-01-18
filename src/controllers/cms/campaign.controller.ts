@@ -24,12 +24,12 @@ const listCampaigns = catchAsync(async (req, res) => {
 
 //TODO: Ensure atomicity: in event of fail on Prisma, should not upload to S3, vice-versa
 const createCampaign = catchAsync(async (req, res) => {
-  let data = req.body;
+  let data = req.body; // the imageNames: string[] is retrieved from frontend
   if (req.files) {
-    const imageUrl = await s3.sendManyToS3(req.files as Express.Multer.File[]);
+    const imageUrls = await s3.sendManyToS3(req.files as Express.Multer.File[]);
     data = {
       ...data,
-      imageUrl: imageUrl,
+      imageUrls: imageUrls,
     };
   }
   const campaign = await cmsCampaignService.createCampaign(data);
