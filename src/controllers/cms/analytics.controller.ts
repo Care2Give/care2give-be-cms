@@ -1,13 +1,12 @@
 import catchAsync from "../../utils/catchAsync";
 import cmsAnalyticsService from "../../services/cms/analytics.service";
-import clerkClient from "@clerk/clerk-sdk-node";
 import httpStatus from "http-status";
 import { DurationFilter } from "../../types/DurationFilter";
 import { DonationType } from "@prisma/client";
 import { assert } from "console";
 
 const listCampaigns = catchAsync(async (req, res) => {
-    const { filter } = req.body;
+    const { filter } = req.query;
     let middleDate: Date;
     let startDate: Date | null = null;
     let endDate: Date = new Date();
@@ -60,7 +59,7 @@ const listCampaigns = catchAsync(async (req, res) => {
 });
 
 const getMostPopularAmounts = catchAsync(async (req, res) => {
-    const { filter } = req.body;
+    const { filter } = req.query;
     let startDate: Date | null;
     let endDate: Date = new Date();
     // TODO clarify exactly on how trends are calculated - especially when allTime is selected
@@ -163,12 +162,12 @@ const getCampaignInformation = catchAsync(async (req, res) => {
 })
 
 const getAllCampaignInformation = catchAsync(async (req, res) => {
-    const { filter, startDate: startDateStr, endDate : endDateStr } = req.body;
-    const startDate = new Date(startDateStr);
-    const endDate = new Date(endDateStr);
+    const { filter, startDate: startDateStr, endDate : endDateStr } = req.query;
+    const startDate = new Date(startDateStr as string);
+    const endDate = new Date(endDateStr as string);
     const campaignsWithDonations = await cmsAnalyticsService.listCampaignsWithDonations(startDate, endDate);
 
-    const timeSeries = getTimeSeries(filter, startDate, endDate);
+    const timeSeries = getTimeSeries(filter as DurationFilter, startDate, endDate);
     
     interface SeriesComponent {
         time: Date,
