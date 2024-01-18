@@ -3,6 +3,7 @@ import campaignRoute from "./campaign.route";
 import cmsRoute from "./cms.route";
 import docsRoute from "./docs.route";
 import config from "../../config/config";
+import paymentRoute from "./payment.route";
 
 const router = express.Router();
 
@@ -15,6 +16,10 @@ const defaultRoutes = [
     path: "/cms",
     route: cmsRoute,
   },
+  {
+    path: "/payment",
+    route: paymentRoute,
+  }
 ];
 
 const devRoutes = [
