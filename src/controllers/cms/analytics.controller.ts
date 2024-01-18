@@ -50,7 +50,8 @@ const listCampaigns = catchAsync(async (req, res) => {
             .reduce((prev, newDonation) => prev + newDonation.dollars + newDonation.cents / 100, 0);
 
         return ({
-            ...campaign,
+            title: campaign.title,
+            id: campaign.id,
             amount: currentAmount,
             trend: currentAmount > previousAmount
         })
