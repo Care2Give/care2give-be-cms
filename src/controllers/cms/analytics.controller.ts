@@ -4,6 +4,7 @@ import clerkClient from "@clerk/clerk-sdk-node";
 import httpStatus from "http-status";
 import { DurationFilter } from "../../types/DurationFilter";
 import { DonationType } from "@prisma/client";
+import { assert } from "console";
 
 const listCampaigns = catchAsync(async (req, res) => {
     const { filter } = req.body;
@@ -13,24 +14,28 @@ const listCampaigns = catchAsync(async (req, res) => {
     // TODO clarify exactly on how trends are calculated - especially when allTime is selected
     switch (filter as DurationFilter) {
         case DurationFilter.Daily:
-            startDate = getTwoDaysAgo();
-            middleDate = getOneDayAgo();
+            startDate = getOneDayAgo(getOneDayAgo(new Date()));
+            middleDate = getOneDayAgo(new Date());
             break;
         case DurationFilter.Weekly:
-            startDate = getTwoWeekAgo();
-            middleDate = getOneWeekAgo();
+            startDate = getOneWeekAgo(getOneWeekAgo(new Date()));
+            middleDate = getOneWeekAgo(new Date());
             break;
         case DurationFilter.Monthly:
-            startDate = getFirstDayOfLastMonth();
-            middleDate = getFirstDayOfThisMonth();
+            const firstDayOfMonth = getFirstDayOfThisMonth(new Date());
+            firstDayOfMonth.setUTCMonth(firstDayOfMonth.getUTCMonth() - 1);
+            startDate = getFirstDayOfThisMonth(firstDayOfMonth);
+            middleDate = getFirstDayOfThisMonth(new Date());
             break;
         case DurationFilter.Yearly:
-            startDate = getFirstDayOfLastYear();
-            middleDate = getFirstDayOfYear();
+            const firstDayOfYear = getFirstDayOfYear(new Date());
+            firstDayOfYear.setFullYear(firstDayOfYear.getUTCFullYear() - 1);
+            startDate = getFirstDayOfYear(firstDayOfYear);
+            middleDate = getFirstDayOfYear(new Date());
             break;
         case DurationFilter.AllTime:
             startDate = null;
-            middleDate = getFirstDayOfLastYear();
+            middleDate = getFirstDayOfYear(new Date());
             break;
     }
 
@@ -61,16 +66,16 @@ const getMostPopularAmounts = catchAsync(async (req, res) => {
     // TODO clarify exactly on how trends are calculated - especially when allTime is selected
     switch (filter as DurationFilter) {
         case DurationFilter.Daily:
-            startDate = getOneDayAgo();
+            startDate = getOneDayAgo(new Date());
             break;
         case DurationFilter.Weekly:
-            startDate = getOneWeekAgo();
+            startDate = getOneWeekAgo(new Date());
             break;
         case DurationFilter.Monthly:
-            startDate = getFirstDayOfThisMonth();
+            startDate = getFirstDayOfThisMonth(new Date());
             break;
         case DurationFilter.Yearly:
-            startDate = getFirstDayOfYear();
+            startDate = getFirstDayOfYear(new Date());
             break;
         case DurationFilter.AllTime:
             startDate = null;
@@ -157,64 +162,158 @@ const getCampaignInformation = catchAsync(async (req, res) => {
     res.status(httpStatus.OK).send(campaignInformation);
 })
 
-const getOneDayAgo = () => {
-    const yesterdayDate: Date = new Date();
-    yesterdayDate.setDate(new Date().getDate() - 1);
+const getAllCampaignInformation = catchAsync(async (req, res) => {
+    const { filter, startDate: startDateStr, endDate : endDateStr } = req.body;
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+    const campaignsWithDonations = await cmsAnalyticsService.listCampaignsWithDonations(startDate, endDate);
+
+    const timeSeries = getTimeSeries(filter, startDate, endDate);
+    
+    interface SeriesComponent {
+        time: Date,
+        value: number,
+    }
+
+    interface SeriesMap {
+        id: string, 
+        title: string, 
+        series: SeriesComponent[]
+    }
+
+    const donationAmountsMap: SeriesMap[] = [];
+    const numDonationsMap: SeriesMap[] = [];
+    campaignsWithDonations.forEach(campaignWithDonation => {
+        const donations = campaignWithDonation.donations; 
+        const donationAmountSeries: SeriesComponent[] = [];
+        const numDonationSeries: SeriesComponent[] = [];
+        for (let timeSeriesIndex = 0; timeSeriesIndex < timeSeries.length - 1; timeSeriesIndex++) {
+            const filteredDonations = donations.filter(donation => {
+                const createdAtDate = new Date(donation.createdAt);
+                return createdAtDate < timeSeries[timeSeriesIndex + 1] && createdAtDate >= timeSeries[timeSeriesIndex];
+            })
+            donationAmountSeries.push({
+                time: timeSeries[timeSeriesIndex],
+                value: filteredDonations.reduce((currentAmount, newDonation) => 
+                currentAmount + newDonation.dollars + newDonation.cents / 100, 0)
+            })
+            numDonationSeries.push({
+                time: timeSeries[timeSeriesIndex],
+                value: filteredDonations.length, 
+            })
+        }
+
+        const filteredDonations = donations.filter(donation => {
+            const createdAtDate = new Date(donation.createdAt);
+            return createdAtDate >= timeSeries[timeSeries.length - 1];
+        })
+        donationAmountSeries.push({
+            time: timeSeries[timeSeries.length - 1],
+            value: filteredDonations.reduce((currentAmount, newDonation) => 
+            currentAmount + newDonation.dollars + newDonation.cents / 100, 0)
+        })
+        numDonationSeries.push({
+            time: timeSeries[timeSeries.length - 1],
+            value: filteredDonations.length, 
+        })
+
+        donationAmountsMap.push({
+            id: campaignWithDonation.id, 
+            title: campaignWithDonation.title, 
+            series: donationAmountSeries
+        })
+
+        numDonationsMap.push({
+            id: campaignWithDonation.id,
+            title: campaignWithDonation.title, 
+            series: numDonationSeries
+        })
+    })
+
+    res.status(httpStatus.OK).send({
+        donationAmount: donationAmountsMap,
+        numDonations: numDonationsMap
+    });
+    
+    // returns {donationAmount: [{campaign, series: [{time, amount}]}], donors: [{campaign, series: [{time, amount}]}]}
+})
+
+function getTimeSeries(duration: DurationFilter, startDate: Date, endDate: Date): Array<Date> {
+    const timeSeries: Array<Date> = [];
+    while (startDate < endDate) {
+        timeSeries.push(startDate);
+        switch (duration) {
+            case DurationFilter.Daily:
+                startDate = getOneDayAfter(startDate);
+                break; 
+            case DurationFilter.Weekly:
+                startDate = getOneWeekAfter(startDate);
+                break;
+            case DurationFilter.Monthly:
+                startDate = getFirstDayOfNextMonth(startDate); 
+                break;
+            default: 
+                assert(false);
+        }
+    }
+    return timeSeries;
+}
+
+const getOneDayAgo = (date: Date) => {
+    const yesterdayDate: Date = new Date(date.getTime());
+    yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1);
+    yesterdayDate.setUTCHours(0, 0, 0, 0);
     return yesterdayDate;
 }
 
-const getTwoDaysAgo = () => {
-    const date: Date = new Date();
-    date.setDate(new Date().getDate() - 2);
-    return date;
+const getOneDayAfter = (date: Date) => {
+    const tomorrowDate: Date = new Date(date.getTime());
+    tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1);
+    tomorrowDate.setUTCHours(0, 0, 0, 0);
+    return tomorrowDate;
 }
 
-const getOneWeekAgo = () => {
-    const lastWeekDate: Date = new Date();
-    lastWeekDate.setDate(new Date().getDate() - 7);
+const getOneWeekAgo = (date: Date) => {
+    const lastWeekDate: Date = new Date(date.getTime());
+    lastWeekDate.setUTCDate(lastWeekDate.getUTCDate() - 7);
+    lastWeekDate.setUTCHours(0, 0, 0, 0);
     return lastWeekDate;
 }
 
-const getTwoWeekAgo = () => {
-    const lastWeekDate: Date = new Date();
-    lastWeekDate.setDate(new Date().getDate() - 14);
-    return lastWeekDate;
+const getOneWeekAfter = (date: Date) => {
+    const nextWeekDate: Date = new Date(date.getTime());
+    nextWeekDate.setUTCDate(nextWeekDate.getUTCDate() + 7);
+    nextWeekDate.setUTCHours(0, 0, 0, 0);
+    return nextWeekDate;
 }
 
-const getFirstDayOfThisMonth = () => {
-    const date = new Date();
-    date.setDate(1);
-    return date;
+const getFirstDayOfThisMonth = (date: Date) => {
+    const firstDayOfMonth = new Date(date.getTime());
+    firstDayOfMonth.setUTCDate(1);
+    firstDayOfMonth.setHours(0, 0, 0, 0);
+    return firstDayOfMonth;
 }
 
-const getFirstDayOfLastMonth = () => {
-    const date = new Date();
-    date.setDate(1);
-    date.setMonth(date.getMonth() - 1);
-    return date;
+const getFirstDayOfNextMonth = (date: Date) => {
+    const firstDayOfMonth = new Date(date.getTime());
+    firstDayOfMonth.setUTCMonth(firstDayOfMonth.getUTCMonth() + 1);
+    firstDayOfMonth.setUTCDate(1);
+    firstDayOfMonth.setUTCHours(0, 0, 0, 0);
+    return firstDayOfMonth;
 }
 
-const getFirstDayOfYear = () => {
-    const date = new Date();
-    date.setDate(1);
-    date.setMonth(0);
-    return date;
+const getFirstDayOfYear = (date: Date) => {
+    const firstDayOfYear = new Date(date.getTime());
+    firstDayOfYear.setUTCDate(1);
+    firstDayOfYear.setUTCMonth(0);
+    firstDayOfYear.setUTCHours(0, 0, 0, 0);
+    return firstDayOfYear;
 }
-
-
-const getFirstDayOfLastYear = () => {
-    const date = new Date();
-    date.setDate(1);
-    date.setMonth(0);
-    date.setFullYear(date.getFullYear() - 1);
-    return date;
-}
-
-
 
 export default {
     listCampaigns,
     getMostPopularAmounts,
-    getCampaignInformation
+    getCampaignInformation,
+    getAllCampaignInformation
 };
 
