@@ -1,6 +1,7 @@
 import express from "express";
 import validate from "../../middlewares/validate";
 import { paymentController } from "../../controllers";
+import { paymentValidation } from "../../validations";
 
 const router = express.Router();
 
@@ -11,6 +12,7 @@ router.get(
   
 router.post(
   "/createPaymentIntent",
+  validate(paymentValidation.createPaymentIntent),
   paymentController.createPaymentIntent
 );
 

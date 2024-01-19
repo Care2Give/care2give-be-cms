@@ -3,9 +3,9 @@ import prisma from "../client";
 import ApiError from "../utils/ApiError";
 import httpStatus from "http-status";
 
-const createDonation = async (donation: Donation) => {
+const createDonation = async (donation: Prisma.DonationCreateInput) => {
   return prisma.donation.create({
-    data: donation,
+    data: donation
   });
 };
 
@@ -51,9 +51,19 @@ const findDonationById = async (id: string): Promise<Donation | null> => {
   return prisma.donation.findUnique({ where: { id } });
 };
 
+const updateDonationByPaymentId = async ( paymentId: string, updatedDonation: Prisma.DonationUpdateInput): Promise<Donation | null> => {
+  return prisma.donation.update({ where: { paymentId: paymentId }, data: updatedDonation });
+}
+
+const findDonationByPaymentId = async (paymentId: string): Promise<Donation | null> => {
+  return prisma.donation.findUnique({ where: { paymentId: paymentId } });
+}
+
 export default {
   createDonation,
   listDonations,
   queryDonations,
   findDonationById,
+  findDonationByPaymentId,
+  updateDonationByPaymentId
 };

@@ -1,14 +1,27 @@
-// # TODO: Confirm the request attributes.
 export interface PaymentIntentRequest{
     amount: number;
     currency: string;
-    payment_method_type: string;
 }
 
 export interface PaymentIntentResponse {
-    client_secret: string;
+    clientSecret: string | null;
+    paymentIntentId: string;
 }
 
 export interface GetConfigResponse{
     publishable_key: string;
+}
+
+export enum PaymentStatus {
+    CREATED = "created",
+    SUCCEEDED = "succeeded",
+    FAILED = "failed",
+    CANCELLED = "cancelled",
+    PENDING = "pending",
+    UNKNOWN = "unknown",
+}
+
+export interface HandleWebhookEventResponse {
+    paymentStatus: PaymentStatus;
+    paymentIntentId: string | undefined;
 }
