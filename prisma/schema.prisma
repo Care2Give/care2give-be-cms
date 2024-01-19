@@ -58,20 +58,22 @@ model Email {
 }
 
 model Donation {
-  id                    String       @id @default(nanoid())
-  createdAt             DateTime     @default(now())
+  id                    String                @id @default(nanoid())
+  createdAt             DateTime              @default(now())
   donationType          DonationType
   donorFirstName        String?
   donorLastName         String?
   donorEmail            String?
   donorNricA            String?
-  donorNricB            String?      @db.VarChar(4)
+  donorNricB            String?               @db.VarChar(4)
   donorTrainingPrograms String[]
-  currency              String       @default("SGD") @db.VarChar(3)
-  dollars               Int          @default(0)
-  cents                 Int          @default(0)
-  campaign              Campaign     @relation(fields: [campaignId], references: [id])
+  currency              String                @default("SGD") @db.VarChar(3)
+  dollars               Int                   @default(0)
+  cents                 Int                   @default(0)
+  campaign              Campaign              @relation(fields: [campaignId], references: [id])
   campaignId            String
+  paymentStatus         DonationPaymentStatus @default(PENDING)
+  paymentId             String                @unique
 }
 
 enum DonationType {
@@ -79,4 +81,11 @@ enum DonationType {
   INDIVIDUAL_WITH_TAX_DEDUCTION
   GROUP_WITH_TAX_DEDUCTION
   WITHOUT_TAX_DEDUCTION
+}
+
+enum DonationPaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
 }
