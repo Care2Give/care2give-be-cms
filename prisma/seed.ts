@@ -186,6 +186,8 @@ async function main() {
       dollars: 123,
       cents: 45,
       campaignId: campaignOne.id,
+      paymentStatus: "SUCCEEDED",
+      paymentId: "pi_3OU3H0FLvGMxrP6C1oHRnQyV",
     },
   });
   const donationTwo = await prisma.donation.create({
@@ -193,6 +195,8 @@ async function main() {
       donationType: "ANONYMOUS",
       dollars: 100,
       campaignId: campaignOne.id,
+      paymentStatus: "PENDING",
+      paymentId: "pi_3OWtUvFLvGMxrP6C13tyd2xc",
     },
   });
   const donationThree = await prisma.donation.create({
@@ -203,6 +207,8 @@ async function main() {
       donorEmail: "janedoe@gmail.com",
       dollars: 100,
       campaignId: campaignOne.id,
+      paymentStatus: "PENDING",
+      paymentId: "pi_3OTgcUFLvGMxrP6C0Ak1ATsI",
     },
   });
   const donationFour = await prisma.donation.create({
@@ -214,6 +220,8 @@ async function main() {
       currency: "SGD",
       dollars: 10,
       campaignId: campaignTwo.id,
+      paymentStatus: "PENDING",
+      paymentId: "pi_3ORXzfFLvGMxrP6C0x1ozPDb",
     },
   });
   const donationFive = await prisma.donation.create({
@@ -227,20 +235,10 @@ async function main() {
       donorTrainingPrograms: ["A", "B"],
       dollars: 1000,
       campaignId: campaignOne.id,
+      paymentStatus: "PENDING",
+      paymentId: "pi_3ORXvkFLvGMxrP6C1sx1cBUe",
     },
   });
-  // donationType          String    @db.VarChar(20)
-  // donorFirstName        String?
-  // donorLastName         String?
-  // donorEmail            String?
-  // donorNricA            String?
-  // donorNricB            String?   @db.VarChar(4)
-  // donorTrainingPrograms String[]
-  // currency              String    @default("SGD") @db.VarChar(3)
-  // dollars               Int       @default(0)
-  // cents                 Int       @default(0)
-  // campaign              Campaign  @relation(fields: [campaignId], references: [id])
-  // campaignId            String
 
   console.log({
     donationOne,
