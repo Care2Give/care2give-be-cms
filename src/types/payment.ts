@@ -1,9 +1,9 @@
-export interface PaymentIntentRequest{
+export interface CreatePaymentIntentRequest{
     amount: number;
     currency: string;
 }
 
-export interface PaymentIntentResponse {
+export interface CreatePaymentIntentResponse {
     clientSecret: string | null;
     paymentIntentId: string;
 }
@@ -24,4 +24,5 @@ export enum PaymentStatus {
 export interface HandleWebhookEventResponse {
     paymentStatus: PaymentStatus;
     paymentIntentId: string | undefined;
+    donationId: string | undefined;
 }

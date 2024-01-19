@@ -1,7 +1,7 @@
 import ApiError from "../utils/ApiError";
 import httpStatus from "http-status";
 import Stripe from 'stripe';
-import { HandleWebhookEventResponse, PaymentIntentRequest, PaymentIntentResponse, PaymentStatus } from "../types/payment";
+import { HandleWebhookEventResponse, CreatePaymentIntentRequest, CreatePaymentIntentResponse, PaymentStatus } from "../types/payment";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
@@ -9,7 +9,7 @@ const getConfig = () => {
     return process.env.STRIPE_PUBLISHABLE_KEY;
 };
 
-const createPaymentIntent = async (request: PaymentIntentRequest): Promise<PaymentIntentResponse> => {
+const createPaymentIntent = async (request: CreatePaymentIntentRequest): Promise<CreatePaymentIntentResponse> => {
     const params: Stripe.PaymentIntentCreateParams = {
         amount: request.amount,
         currency: request.currency,
@@ -28,6 +28,18 @@ const createPaymentIntent = async (request: PaymentIntentRequest): Promise<Payme
             throw new ApiError(httpStatus.BAD_REQUEST, error.message);
         } else {
             throw new ApiError(httpStatus.BAD_REQUEST, 'Unable to create payment intent');
+        }
+    }
+};
+
+const updatePaymentIntent = async (paymentIntentId: string, updateParams: Stripe.PaymentIntentUpdateParams): Promise<void> => {
+    try {
+        await stripe.paymentIntents.update(paymentIntentId, updateParams);
+    } catch (error: unknown) {
+        if (error instanceof Stripe.errors.StripeError) {
+            throw new ApiError(httpStatus.BAD_REQUEST, error.message);
+        } else {
+            throw new ApiError(httpStatus.BAD_REQUEST, 'Unable to update payment intent');
         }
     }
 };
@@ -59,12 +71,14 @@ const handleWebhookEvent = async (req: any): Promise<HandleWebhookEventResponse>
             paymentStatus = PaymentStatus.CANCELLED;
             break;
         default:
-            return { paymentStatus: paymentStatus, paymentIntentId: undefined};
+            return { paymentStatus: paymentStatus, paymentIntentId: undefined, donationId: undefined};
     }
-    return { paymentStatus: paymentStatus, paymentIntentId: (event.data.object as Stripe.PaymentIntent).id };
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    return { paymentStatus: paymentStatus, paymentIntentId: paymentIntent.id, donationId: paymentIntent.metadata.donationId };
 }
 export default {
     getConfig,
     createPaymentIntent,
+    updatePaymentIntent,
     handleWebhookEvent
 };

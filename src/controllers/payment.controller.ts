@@ -45,7 +45,9 @@ const createPaymentIntent = catchAsync(async (req, res) => {
         paymentId: paymentIntentId,
     };
 
-    donationService.createDonation(donation);
+    const { id } = await donationService.createDonation(donation);
+
+    await paymentService.updatePaymentIntent(paymentIntentId, { metadata: { donationId: id } });
 
     res.status(httpStatus.CREATED).send({ clientSecret });
 });
@@ -56,17 +58,17 @@ const getConfig = catchAsync(async (_, res) => {
 });
 
 const handleWebhookEvent = catchAsync(async (req, res) => {
-    const { paymentStatus, paymentIntentId } = await paymentService.handleWebhookEvent(req);
-    if (paymentIntentId) {
+    const { paymentStatus, paymentIntentId, donationId } = await paymentService.handleWebhookEvent(req);
+    if (paymentIntentId && donationId) {
         switch (paymentStatus) {
-            case PaymentStatus.SUCCEEDED:
-                await donationService.updateDonationByPaymentId(paymentIntentId, { paymentStatus: DonationPaymentStatus.SUCCEEDED });
+            case PaymentStatus.SUCCEEDED || PaymentStatus.CREATED:
+                await donationService.updateDonation(donationId, { paymentStatus: DonationPaymentStatus.SUCCEEDED });
                 break;
             case PaymentStatus.FAILED:
-                await donationService.updateDonationByPaymentId(paymentIntentId, { paymentStatus: DonationPaymentStatus.FAILED });
+                await donationService.updateDonation(donationId, { paymentStatus: DonationPaymentStatus.FAILED });
                 break;
             case PaymentStatus.CANCELLED:
-                await donationService.updateDonationByPaymentId(paymentIntentId, { paymentStatus: DonationPaymentStatus.CANCELLED });
+                await donationService.updateDonation(donationId, { paymentStatus: DonationPaymentStatus.CANCELLED });
                 break;
             default:
                 break;

@@ -51,12 +51,8 @@ const findDonationById = async (id: string): Promise<Donation | null> => {
   return prisma.donation.findUnique({ where: { id } });
 };
 
-const updateDonationByPaymentId = async ( paymentId: string, updatedDonation: Prisma.DonationUpdateInput): Promise<Donation | null> => {
-  return prisma.donation.update({ where: { paymentId: paymentId }, data: updatedDonation });
-}
-
-const findDonationByPaymentId = async (paymentId: string): Promise<Donation | null> => {
-  return prisma.donation.findUnique({ where: { paymentId: paymentId } });
+const updateDonation = async ( id: string, updatedDonation: Prisma.DonationUpdateInput): Promise<Donation | null> => {
+  return prisma.donation.update({ where: { id: id }, data: updatedDonation });
 }
 
 export default {
@@ -64,6 +60,5 @@ export default {
   listDonations,
   queryDonations,
   findDonationById,
-  findDonationByPaymentId,
-  updateDonationByPaymentId
+  updateDonation
 };
