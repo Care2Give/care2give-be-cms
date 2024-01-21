@@ -10,6 +10,7 @@ import { authLimiter } from "./middlewares/rateLimiter";
 import testRoutes from "./routes";
 import v1Routes from "./routes/v1";
 import ApiError from "./utils/ApiError";
+import customJSONBodyParser from "./middlewares/customJSONBodyParser";
 
 const app = express();
 
@@ -22,7 +23,7 @@ if (config.env !== "test") {
 app.use(helmet());
 
 // parse json request body
-app.use(express.json());
+app.use(customJSONBodyParser());
 
 // parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
