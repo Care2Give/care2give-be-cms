@@ -51,16 +51,9 @@ const uploadSingleImage = {
   }),
 };
 
-const getSingleImageSignedUrl = {
-  params: Joi.object().keys({
-    key: Joi.string().required(),
-  }),
-};
-
 export default {
   createCampaign,
   queryCampaignById,
   updateCampaignById,
   uploadSingleImage,
-  getSingleImageSignedUrl,
 };

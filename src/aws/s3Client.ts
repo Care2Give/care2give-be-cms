@@ -1,12 +1,6 @@
-import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-  HeadObjectCommand,
-} from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import * as Constants from "../constants";
 import { randomUUID } from "crypto";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 class S3 {
   client: S3Client;
@@ -33,56 +27,43 @@ class S3 {
   /**
    * Helper function to upload a single file in Multer (middleware) in-memory storage to S3
    * @param file
-   * @returns s3 object key
+   * @returns s3 object url
    */
   async sendToS3(file: Express.Multer.File) {
     const { buffer, mimetype } = file;
-    const key = randomUUID(); // images will be overriden if file name is same
+    const path = randomUUID(); // images will be overriden if file name is same
+    const url = this._constructImageUrl(path);
     console.log(
-      `Sending to S3 bucket [${this.bucketName}]: path [${key}] with contentType [${mimetype}]`
+      `Sending to S3 bucket [${this.bucketName}]: path [${path}] with contentType [${mimetype}]`
     );
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
-      Key: key,
+      Key: path,
       Body: buffer,
       ContentType: mimetype,
     });
     await s3.client.send(command);
     console.log(
-      `Successfully sent to S3 bucket [${this.bucketName}]: path [${key}]`
-    );
-    return key;
-  }
-
-  /**
-   * Generates pre-signed url for s3 object key that expires in 1 hour
-   * @param key s3 object key
-   * @returns presigned url for s3 object
-   */
-  async getSignedUrlFromS3(key: string) {
-    const command = new GetObjectCommand({
-      Bucket: this.bucketName,
-      Key: key,
-    });
-    const url = await getSignedUrl(s3.client, command, {
-      expiresIn: Constants.ONE_HOUR_IN_SECONDS,
-    });
-    console.log(
-      `Successfully generated pre-signed url from S3 bucket [${this.bucketName}] for object key [${key}]`
+      `Successfully sent to S3 bucket [${this.bucketName}]: path [${path}]`
     );
     return url;
   }
 
   /**
-   * Checks if a given key exists in the s3 bucket, throws an error if does not exist
-   * @param key s3 object key
+   * Returns S3 Object URL based on given path
+   * @param path S3 Object Key
+   * @returns S3 Object URL
    */
-  async checkValidKey(key: string) {
-    const command = new HeadObjectCommand({
-      Bucket: this.bucketName,
-      Key: key,
-    });
-    await s3.client.send(command);
+  _constructImageUrl(path: string) {
+    const domain = [
+      "https://",
+      s3.bucketName,
+      "s3",
+      s3.bucketRegion,
+      "amazonaws",
+      "com",
+    ].join(".");
+    return [domain, path].join("/");
   }
 }
 
