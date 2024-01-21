@@ -1,43 +1,43 @@
 import express from "express";
 import homepageAnalyticsController from "../../../controllers/cms/homepageAnalytics.controller";
-import apiErrorHandler from "../../../middlewares/apiErrorHandler";
+import errorHandler from "../../../middlewares/errorHandler";
 
 const router = express.Router();
 
 router.get(
   "/total-donation-amount",
   homepageAnalyticsController.totalDonationAmount,
-  apiErrorHandler
+  errorHandler
 );
 router.get(
   "/total-donor-number",
   homepageAnalyticsController.totalDonorNumber,
-  apiErrorHandler
+  errorHandler
 );
 router.get(
   "/highest-donation-amount",
   homepageAnalyticsController.highestDonationAmount,
-  apiErrorHandler
+  errorHandler
 );
 router.get(
   "/most-popular-campaign",
   homepageAnalyticsController.mostPopularCampaign,
-  apiErrorHandler
+  errorHandler
 );
 router.get(
   "/most-popular-amount",
   homepageAnalyticsController.mostPopularAmount,
-  apiErrorHandler
+  errorHandler
 );
 router.get(
   "/types-of-donations",
   homepageAnalyticsController.typesOfDonations,
-  apiErrorHandler
+  errorHandler
 );
 router.get(
   "/daily-donations",
   homepageAnalyticsController.dailyDonations,
-  apiErrorHandler
+  errorHandler
 );
 
 export default router;

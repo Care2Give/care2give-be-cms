@@ -2,25 +2,29 @@ import express from "express";
 import emailEditorController from "../../../controllers/cms/emailEditor.controller";
 import validate from "../../../middlewares/validate";
 import emailEditorValidation from "../../../validations/cms/emailEditor.validation";
-import apiErrorHandler from "../../../middlewares/apiErrorHandler";
+import errorHandler from "../../../middlewares/errorHandler";
 
 const router = express.Router();
 
-router.get("/", emailEditorController.getLatestEmail);
-router.get("/version-history", emailEditorController.listEmailTemplates);
+router.get("/", emailEditorController.getLatestEmail, errorHandler);
+router.get(
+  "/version-history",
+  emailEditorController.listEmailTemplates,
+  errorHandler
+);
 
 router.post(
   "/",
   validate(emailEditorValidation.createEmailTemplate),
   emailEditorController.createEmail,
-  apiErrorHandler
+  errorHandler
 );
 
 router.post(
   "/send",
   validate(emailEditorValidation.sendEmail),
   emailEditorController.sendEmail,
-  apiErrorHandler
+  errorHandler
 );
 
 export default router;

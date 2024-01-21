@@ -21,4 +21,5 @@ export const DONATIONS_EXPORT_HEADERS = [
   { header: "Training Programs", key: "trainingPrograms" },
 ];
 
+export const ONE_HOUR_IN_SECONDS = 60 * 60;
 export const FIVE_MEGABYTES = 1 * 1000 * 1000 * 5;

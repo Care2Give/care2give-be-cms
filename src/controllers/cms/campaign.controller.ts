@@ -48,8 +48,19 @@ const uploadSingleImage = catchAsync(async (req, res) => {
   if (!req.file) {
     throw new ApiError(httpStatus.BAD_REQUEST, "File is required");
   }
-  const url = await s3.sendToS3(req.file);
-  res.status(httpStatus.CREATED).send({ url });
+  const key = await s3.sendToS3(req.file);
+  res.status(httpStatus.CREATED).send({ key });
+});
+
+const getSingleImageSignedUrl = catchAsync(async (req, res) => {
+  const key = req.params.key;
+  try {
+    await s3.checkValidKey(key);
+    const signedUrl = await s3.getSignedUrlFromS3(key);
+    res.status(httpStatus.OK).send({ url: signedUrl });
+  } catch (err) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Key does not exist");
+  }
 });
 
 export default {
@@ -58,4 +69,5 @@ export default {
   queryCampaign,
   updateCampaign,
   uploadSingleImage,
+  getSingleImageSignedUrl,
 };
