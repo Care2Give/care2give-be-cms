@@ -47,8 +47,6 @@ const totalDonorNumber = catchAsync(async (req, res) => {
   const donations = await getValidDonations(filter as string);
   const donorNumber = donations.length;
 
-  console.log(donorNumber);
-
   res.status(httpStatus.OK).send({ donorNumber });
 });
 
