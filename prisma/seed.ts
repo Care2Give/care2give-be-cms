@@ -19,7 +19,8 @@ async function main() {
       cents: 45,
       createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
       editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
-      imageUrl: [
+      imageNames: ["Hzokhnc.jpeg", "3E1zOoW.jpeg", "5iRPHZe.jpeg"],
+      imageUrls: [
         "https://i.imgur.com/Hzokhnc.jpeg",
         "https://i.imgur.com/3E1zOoW.jpeg",
         "https://i.imgur.com/5iRPHZe.jpeg",
@@ -38,7 +39,8 @@ async function main() {
       cents: 0,
       createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
       editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
-      imageUrl: ["https://i.imgur.com/XnXiEd3.jpeg"],
+      imageNames: ["XnXiEd3.jpeg"],
+      imageUrls: ["https://i.imgur.com/XnXiEd3.jpeg"],
     },
   });
   const campaignThree = await prisma.campaign.create({
@@ -53,7 +55,8 @@ async function main() {
       cents: 0,
       createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
       editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
-      imageUrl: [],
+      imageNames: ["lQGgBef.jpeg"],
+      imageUrls: ["https://i.imgur.com/lQGgBef.jpeg"],
     },
   });
   console.log({ campaignOne, campaignTwo, campaignThree });

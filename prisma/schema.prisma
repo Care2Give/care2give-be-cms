@@ -24,7 +24,8 @@ model Campaign {
   cents           Int                      @default(0)
   createdBy       String
   editedBy        String
-  imageUrl        String[]
+  imageNames      String[]
+  imageUrls       String[]
   donationAmounts CampaignDonationAmount[]
   donations       Donation[]
 }
