@@ -56,6 +56,7 @@ class S3 {
    */
   _constructImageUrl(path: string) {
     const domain = [
+      "https://",
       s3.bucketName,
       "s3",
       s3.bucketRegion,
