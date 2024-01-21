@@ -13,7 +13,7 @@ const createCampaign = {
     createdBy: Joi.string().required(),
     editedBy: Joi.string().required(),
     imageNames: Joi.array().items(Joi.string()).required(),
-    imageUrls: Joi.array().items(Joi.string()), // From middleware, not present in POST request
+    imageUrls: Joi.array().items(Joi.string()).required(),
   }),
 };
 
@@ -40,13 +40,20 @@ const updateCampaignById = {
       createdBy: Joi.string().required(),
       editedBy: Joi.string().required(),
       imageNames: Joi.array().items(Joi.string()).required(),
-      imageUrls: Joi.array().items(Joi.string()), // From middleware, not present in POST request
+      imageUrls: Joi.array().items(Joi.string()).required(),
     })
     .min(1),
+};
+
+const uploadSingleImage = {
+  body: Joi.object().keys({
+    image: Joi.binary().required(),
+  }),
 };
 
 export default {
   createCampaign,
   queryCampaignById,
   updateCampaignById,
+  uploadSingleImage,
 };

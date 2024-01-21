@@ -25,43 +25,28 @@ class S3 {
   }
 
   /**
-   * Function to upload many files in the Multer (middleware) in-memory storage to S3.
-   * @param files
-   * @returns Promise of url in order of upload
-   */
-  async sendManyToS3(files: Express.Multer.File[]) {
-    return await Promise.all(
-      Array.from({ length: files.length }).map(async (_, i) => {
-        const { buffer, mimetype } = files[i];
-        const path = randomUUID();
-        const url = this._constructImageUrl(path);
-        await this.sendToS3(path, buffer, mimetype);
-        return url;
-      })
-    );
-  }
-
-  /**
    * Helper function to upload a single file in Multer (middleware) in-memory storage to S3
-   * NOTE: images will be overwritten if filePath is same
-   * @param filePath
-   * @param fileBuffer
-   * @param contentType
+   * @param file
+   * @returns s3 object url
    */
-  async sendToS3(filePath: string, fileBuffer: Buffer, contentType: string) {
+  async sendToS3(file: Express.Multer.File) {
+    const { buffer, mimetype } = file;
+    const path = randomUUID(); // images will be overriden if file name is same
+    const url = this._constructImageUrl(path);
     console.log(
-      `Sending to S3 bucket [${this.bucketName}]: path [${filePath}] with contentType [${contentType}]`
+      `Sending to S3 bucket [${this.bucketName}]: path [${path}] with contentType [${mimetype}]`
     );
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
-      Key: filePath,
-      Body: fileBuffer,
-      ContentType: contentType,
+      Key: path,
+      Body: buffer,
+      ContentType: mimetype,
     });
     await s3.client.send(command);
     console.log(
-      `Successfully sent to S3 bucket [${this.bucketName}]: path [${filePath}]`
+      `Successfully sent to S3 bucket [${this.bucketName}]: path [${path}]`
     );
+    return url;
   }
 
   /**
