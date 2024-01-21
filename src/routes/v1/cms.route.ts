@@ -9,6 +9,7 @@ import campaignRouter from "./cms/campaign.route";
 import donationRouter from "./cms/donation.route";
 import emailEditorRouter from "./cms/emailEditor.route";
 import homepageAnalyticsRouter from "./cms/homepageAnalytics.route";
+import errorHandler from "../../middlewares/errorHandler";
 
 declare global {
   namespace Express {
@@ -50,7 +51,7 @@ router.get("/", (req: RequireAuthProp<Request>, res) => {
 });
 
 cmsRoutes.forEach(({ path, route }) => {
-  router.use(path, route);
+  router.use(path, route, errorHandler);
 });
 
 export default router;
