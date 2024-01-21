@@ -44,7 +44,6 @@ const updateCampaign = catchAsync(async (req, res) => {
 });
 
 const uploadSingleImage = catchAsync(async (req, res) => {
-  console.log(`file: ${req.file}`);
   if (!req.file) {
     throw new ApiError(httpStatus.BAD_REQUEST, "File is required");
   }

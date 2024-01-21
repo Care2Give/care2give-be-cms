@@ -67,6 +67,9 @@ class S3 {
     const url = await getSignedUrl(s3.client, command, {
       expiresIn: Constants.ONE_HOUR_IN_SECONDS,
     });
+    console.log(
+      `Successfully generated pre-signed url from S3 bucket [${this.bucketName}] for object key [${key}]`
+    );
     return url;
   }
 
