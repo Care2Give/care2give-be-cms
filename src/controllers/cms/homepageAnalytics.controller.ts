@@ -3,37 +3,6 @@ import httpStatus from "http-status";
 import cmsDonationService from "../../services/cms/donation.service";
 import { $Enums } from "@prisma/client";
 
-
-// gets the total donations across all campaigns
-const totalDonationAmount = catchAsync(async (_, res) => {
-  const donations = await cmsDonationService.listDonations();
-  const totalAmount = donations.reduce((acc, donation) => {
-    return acc + donation.dollars + donation.cents / 100
-  }, 0)
-
-  res.status(httpStatus.OK).send({totalAmount});
-});
-
-// gets the total number of donations across all campaigns
-const totalDonorNumber = catchAsync(async (_, res) => {
-  const donations = await cmsDonationService.listDonations();
-  const donorNumber = donations.length
-
-  res.status(httpStatus.OK).send({donorNumber});
-});
-
-// gets the highest amount donated in a single donation across all campaigns
-const highestDonationAmount = catchAsync(async (_, res) => {
-  const donations = await cmsDonationService.listDonations();
-  const highestAmount = donations.map(
-    donation => donation.dollars + donation.cents / 100
-  ).reduce((prev, current) => {
-    return (prev && prev > current) ? prev : current
-  });
-
-  res.status(httpStatus.OK).send({highestAmount});
-});
-
 // helper function to filter the donations by time
 const getValidDonations = async (filter: string) => {
   return (await cmsDonationService.listDonations()).filter(
@@ -42,7 +11,7 @@ const getValidDonations = async (filter: string) => {
       const donationAge = new Date(donation.createdAt).getTime()
       const diffInDays = Math.round((currentTime-donationAge) / (1000*60*60*24))
 
-      if (filter == "all-time") {
+      if (filter == "alltime") {
         return donation;
       } else if (filter == "yearly" && diffInDays <= 365) {
         return donation
@@ -59,13 +28,51 @@ const getValidDonations = async (filter: string) => {
   );
 }
 
+// gets the total donations across all campaigns
+const totalDonationAmount = catchAsync(async (req, res) => {
+  const { filter } = req.query
+
+  const donations = await getValidDonations((filter as string));
+  const totalAmount = donations.reduce((acc, donation) => {
+    return acc + donation.dollars + donation.cents / 100
+  }, 0)
+
+  res.status(httpStatus.OK).send({totalAmount});
+});
+
+// gets the total number of donations across all campaigns
+const totalDonorNumber = catchAsync(async (req, res) => {
+  const { filter } = req.query
+
+  const donations = await getValidDonations((filter as string));
+  const donorNumber = donations.length
+
+  console.log(donorNumber)
+
+  res.status(httpStatus.OK).send({donorNumber});
+});
+
+// gets the highest amount donated in a single donation across all campaigns
+const highestDonationAmount = catchAsync(async (req, res) => {
+  const { filter } = req.query
+
+  const donations = await getValidDonations((filter as string));
+  const highestAmount = donations.map(
+    donation => donation.dollars + donation.cents / 100
+  ).reduce((prev, current) => {
+    return (prev && prev > current) ? prev : current
+  });
+
+  res.status(httpStatus.OK).send({highestAmount});
+});
+
 // gets the most popular campaign by the number of donors 
 // takes in a parameter to specify how to search by (daily, weekly, monthly, yearly, all time)
 const mostPopularCampaign = catchAsync(async (req, res) => {
-  const { filter } = req.body
+  const { filter } = req.query
 
   // filters for the donations according to the time parameter
-  const donations = await getValidDonations(filter)
+  const donations = await getValidDonations((filter as string));
 
   if (donations.length == 0) {
     throw new Error ("no donations have been made" + filter)
@@ -94,16 +101,16 @@ const mostPopularCampaign = catchAsync(async (req, res) => {
     return donation.campaign.id == mostPopularCampaign[0]
   })?.campaign.title
 
-  res.status(httpStatus.OK).send(campaignTitle);
+  res.status(httpStatus.OK).send({campaignTitle: campaignTitle, numberOfDonors: mostPopularCampaign[1]});
 });
 
 // gets the most popular amount donated across all campaigns
 // takes in a parameter to specify how to sort by (daily, weekly, monthly)
 const mostPopularAmount = catchAsync(async (req, res) => {
-  const { filter } = req.body
+  const { filter } = req.query
 
   // filters for the donations according to the time parameter
-  const donations = await getValidDonations(filter)
+  const donations = await getValidDonations((filter as string));
 
   if (donations.length == 0) {
     throw new Error ("no donations have been made" + filter)
@@ -129,7 +136,7 @@ const mostPopularAmount = catchAsync(async (req, res) => {
   
   const mostPopularAmount = [...amountMap.entries()].reduce((a, e ) => e[1] > a[1] ? e : a)
 
-  res.status(httpStatus.OK).send(mostPopularAmount[0].toString());
+  res.status(httpStatus.OK).send({mostPopularAmount: mostPopularAmount[0].toString(), numberOfDonors: mostPopularAmount[1]});
 });
 
 // gets the number of each type of donation
@@ -158,10 +165,10 @@ const typesOfDonations = catchAsync(async (_, res) => {
 // gets the total number of donations each day
 // takes in 2 dates (start and end dates) to filter the data by
 const dailyDonations = catchAsync(async (req, res) => {
-  const { first, second } = req.body
+  const { first, second } = req.query
 
-  const firstDate = new Date(first)
-  const secondDate = new Date(second)
+  const firstDate = new Date((first as string))
+  const secondDate = new Date((second as string))
 
   // filters for the donations according to the time parameter
   const donations = (await cmsDonationService.listDonations()).filter(
