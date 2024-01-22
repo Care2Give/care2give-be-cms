@@ -4,6 +4,9 @@ CREATE TYPE "CampaignStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'ARCHIVED');
 -- CreateEnum
 CREATE TYPE "DonationType" AS ENUM ('ANONYMOUS', 'INDIVIDUAL_WITH_TAX_DEDUCTION', 'GROUP_WITH_TAX_DEDUCTION', 'WITHOUT_TAX_DEDUCTION');
 
+-- CreateEnum
+CREATE TYPE "DonationPaymentStatus" AS ENUM ('PENDING', 'SUCCEEDED', 'FAILED', 'CANCELLED');
+
 -- CreateTable
 CREATE TABLE "Campaign" (
     "id" TEXT NOT NULL,
@@ -19,7 +22,7 @@ CREATE TABLE "Campaign" (
     "cents" INTEGER NOT NULL DEFAULT 0,
     "createdBy" TEXT NOT NULL,
     "editedBy" TEXT NOT NULL,
-    "imageUrl" TEXT[],
+    "imageUrls" TEXT[],
 
     CONSTRAINT "Campaign_pkey" PRIMARY KEY ("id")
 );
@@ -32,7 +35,6 @@ CREATE TABLE "CampaignDonationAmount" (
     "currency" VARCHAR(3) NOT NULL DEFAULT 'SGD',
     "dollars" INTEGER NOT NULL DEFAULT 0,
     "cents" INTEGER NOT NULL DEFAULT 0,
-    "title" VARCHAR(255) NOT NULL,
     "description" TEXT,
     "campaignId" TEXT NOT NULL,
 
@@ -56,7 +58,7 @@ CREATE TABLE "Email" (
 CREATE TABLE "Donation" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "donationType" VARCHAR(255) NOT NULL,
+    "donationType" "DonationType" NOT NULL,
     "donorFirstName" TEXT,
     "donorLastName" TEXT,
     "donorEmail" TEXT,
@@ -67,9 +69,14 @@ CREATE TABLE "Donation" (
     "dollars" INTEGER NOT NULL DEFAULT 0,
     "cents" INTEGER NOT NULL DEFAULT 0,
     "campaignId" TEXT NOT NULL,
+    "paymentStatus" "DonationPaymentStatus" NOT NULL DEFAULT 'PENDING',
+    "paymentId" TEXT NOT NULL,
 
     CONSTRAINT "Donation_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Donation_paymentId_key" ON "Donation"("paymentId");
 
 -- AddForeignKey
 ALTER TABLE "CampaignDonationAmount" ADD CONSTRAINT "CampaignDonationAmount_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "Campaign"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

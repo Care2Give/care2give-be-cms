@@ -19,7 +19,6 @@ async function main() {
       cents: 45,
       createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
       editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
-      imageNames: ["Hzokhnc.jpeg", "3E1zOoW.jpeg", "5iRPHZe.jpeg"],
       imageUrls: [
         "https://i.imgur.com/Hzokhnc.jpeg",
         "https://i.imgur.com/3E1zOoW.jpeg",
@@ -39,7 +38,6 @@ async function main() {
       cents: 0,
       createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
       editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
-      imageNames: ["XnXiEd3.jpeg"],
       imageUrls: ["https://i.imgur.com/XnXiEd3.jpeg"],
     },
   });
@@ -55,7 +53,6 @@ async function main() {
       cents: 0,
       createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
       editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
-      imageNames: ["lQGgBef.jpeg"],
       imageUrls: ["https://i.imgur.com/lQGgBef.jpeg"],
     },
   });
@@ -240,6 +237,7 @@ async function main() {
       campaignId: campaignOne.id,
       paymentStatus: "PENDING",
       paymentId: "pi_3ORXvkFLvGMxrP6C1sx1cBUe",
+      createdAt: new Date("2023-12-28"),
     },
   });
 

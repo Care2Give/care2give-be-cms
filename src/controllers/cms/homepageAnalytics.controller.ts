@@ -2,6 +2,7 @@ import catchAsync from "../../utils/catchAsync";
 import httpStatus from "http-status";
 import cmsDonationService from "../../services/cms/donation.service";
 import { $Enums } from "@prisma/client";
+import homeAnalyticsService from "../../services/cms/homeAnalytics.service";
 
 // helper function to filter the donations by time
 const getValidDonations = async (filter: string) => {
@@ -31,37 +32,26 @@ const getValidDonations = async (filter: string) => {
 // gets the total donations across all campaigns
 const totalDonationAmount = catchAsync(async (req, res) => {
   const { filter } = req.query;
-
-  const donations = await getValidDonations(filter as string);
-  const totalAmount = donations.reduce((acc, donation) => {
-    return acc + donation.dollars + donation.cents / 100;
-  }, 0);
-
-  res.status(httpStatus.OK).send({ totalAmount });
+  const totalAmount = await homeAnalyticsService.totalDonationAmount(
+    filter as string
+  );
+  res.status(httpStatus.OK).send({ totalAmount: totalAmount._sum.dollars });
 });
 
 // gets the total number of donations across all campaigns
 const totalDonorNumber = catchAsync(async (req, res) => {
   const { filter } = req.query;
-
-  const donations = await getValidDonations(filter as string);
-  const donorNumber = donations.length;
-
+  const donorNumber = await homeAnalyticsService.countDonors(filter as string);
   res.status(httpStatus.OK).send({ donorNumber });
 });
 
 // gets the highest amount donated in a single donation across all campaigns
 const highestDonationAmount = catchAsync(async (req, res) => {
   const { filter } = req.query;
-
-  const donations = await getValidDonations(filter as string);
-  const highestAmount = donations
-    .map((donation) => donation.dollars + donation.cents / 100)
-    .reduce((prev, current) => {
-      return prev && prev > current ? prev : current;
-    });
-
-  res.status(httpStatus.OK).send({ highestAmount });
+  const highestAmount = await homeAnalyticsService.highestDonationAmount(
+    filter as string
+  );
+  res.status(httpStatus.OK).send({ highestAmount: highestAmount._max.dollars });
 });
 
 // gets the most popular campaign by the number of donors

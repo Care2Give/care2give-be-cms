@@ -4,6 +4,7 @@ import httpStatus from "http-status";
 import cmsCampaignService from "../../services/cms/campaign.service";
 import s3 from "../../aws/s3Client";
 import ApiError from "../../utils/ApiError";
+import { FIVE_MEGABYTES } from "../../constants";
 
 const listCampaigns = catchAsync(async (req, res) => {
   const campaigns = await cmsCampaignService.listCampaigns();
@@ -24,15 +25,7 @@ const listCampaigns = catchAsync(async (req, res) => {
 
 //TODO: Ensure atomicity: in event of fail on Prisma, should not upload to S3, vice-versa
 const createCampaign = catchAsync(async (req, res) => {
-  let data = req.body; // the imageNames: string[] is retrieved from frontend
-  if (req.files) {
-    const imageUrls = await s3.sendManyToS3(req.files as Express.Multer.File[]);
-    data = {
-      ...data,
-      imageUrls: imageUrls,
-    };
-  }
-  const campaign = await cmsCampaignService.createCampaign(data);
+  const campaign = await cmsCampaignService.createCampaign(req.body);
   res.status(httpStatus.CREATED).send(campaign);
 });
 
@@ -50,9 +43,18 @@ const updateCampaign = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(campaign);
 });
 
+const uploadSingleImage = catchAsync(async (req, res) => {
+  if (!req.file) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "File is required");
+  }
+  const url = await s3.sendToS3(req.file);
+  res.status(httpStatus.CREATED).send({ url });
+});
+
 export default {
   listCampaigns,
   createCampaign,
   queryCampaign,
   updateCampaign,
+  uploadSingleImage,
 };

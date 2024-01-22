@@ -3,7 +3,6 @@ import cmsCampaignController from "../../../controllers/cms/campaign.controller"
 import { upload } from "../../../middlewares/multer";
 import validate from "../../../middlewares/validate";
 import campaignValidation from "../../../validations/cms/campaign.validation";
-import apiErrorHandler from "../../../middlewares/apiErrorHandler";
 
 const router = express.Router();
 
@@ -13,10 +12,14 @@ router.get("/", cmsCampaignController.listCampaigns);
 // Requires full campaign details
 router.post(
   "/",
-  upload.array("imageUrls"),
   validate(campaignValidation.createCampaign),
-  cmsCampaignController.createCampaign,
-  apiErrorHandler
+  cmsCampaignController.createCampaign
+);
+
+router.post(
+  "/images",
+  upload.single("image"),
+  cmsCampaignController.uploadSingleImage
 );
 
 // GET: Retrieves full campaign details
@@ -25,13 +28,11 @@ router
   .route("/:id")
   .get(
     validate(campaignValidation.queryCampaignById),
-    cmsCampaignController.queryCampaign,
-    apiErrorHandler
+    cmsCampaignController.queryCampaign
   )
   .patch(
     validate(campaignValidation.updateCampaignById),
-    cmsCampaignController.updateCampaign,
-    apiErrorHandler
+    cmsCampaignController.updateCampaign
   );
 
 export default router;
