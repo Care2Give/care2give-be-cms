@@ -123,7 +123,7 @@ const getCampaignInformation = catchAsync(async (req, res) => {
     const { campaignId } = req.params;
     const campaign = await cmsAnalyticsService.queryCampaign(campaignId);
     if (campaign === null) {
-        res.status(httpStatus.NOT_FOUND);
+        res.status(httpStatus.NOT_FOUND).send(null);
         return;
     }
     const donationTypeMap = new Map<DonationType, number>();
@@ -144,15 +144,27 @@ const getCampaignInformation = catchAsync(async (req, res) => {
         }
     });
 
+    const highestDonation = campaign.donations.length > 0
+        ? campaign.donations.reduce((highestDonation, newDonation) => 
+        newDonation.dollars + newDonation.cents / 100 > highestDonation.dollars + highestDonation.cents / 100
+            ? newDonation
+            : highestDonation
+            )
+        : null
+
+    const condensedHighestDonation = highestDonation
+        ? {
+            value: highestDonation.dollars + highestDonation.cents / 100,
+            donorName: highestDonation.donorFirstName + " " + highestDonation.donorLastName,
+            createdAt: highestDonation.createdAt,
+          }
+        : null;
+
     const campaignInformation = {
         title: campaign.title,
         currentAmount: campaign.donations
             .reduce((total, newDonation) => total + newDonation.dollars + newDonation.cents / 100, 0),
-        highestDonation: campaign.donations.reduce((highestDonation, newDonation) => 
-            newDonation.dollars + newDonation.cents / 100 > highestDonation.dollars + highestDonation.cents / 100
-                ? newDonation
-                : highestDonation
-            ),
+        highestDonation: condensedHighestDonation,
         startDate: campaign.startDate, 
         endDate: campaign.endDate, 
         timeLeft: campaign.endDate.getUTCMilliseconds() - new Date().getUTCMilliseconds(),
