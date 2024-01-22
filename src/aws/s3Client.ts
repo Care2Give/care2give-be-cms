@@ -41,6 +41,7 @@ class S3 {
       Key: path,
       Body: buffer,
       ContentType: mimetype,
+      ACL: "public-read",
     });
     await s3.client.send(command);
     console.log(
@@ -56,14 +57,13 @@ class S3 {
    */
   _constructImageUrl(path: string) {
     const domain = [
-      "https://",
       s3.bucketName,
       "s3",
       s3.bucketRegion,
       "amazonaws",
       "com",
     ].join(".");
-    return [domain, path].join("/");
+    return "https://" + [domain, path].join("/");
   }
 }
 
