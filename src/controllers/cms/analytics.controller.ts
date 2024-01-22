@@ -159,6 +159,8 @@ const getCampaignInformation = catchAsync(async (req, res) => {
             createdAt: highestDonation.createdAt,
           }
         : null;
+        
+    var moment = require('moment');
 
     const campaignInformation = {
         title: campaign.title,
@@ -167,7 +169,7 @@ const getCampaignInformation = catchAsync(async (req, res) => {
         highestDonation: condensedHighestDonation,
         startDate: campaign.startDate, 
         endDate: campaign.endDate, 
-        timeLeft: Math.floor((campaign.endDate.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)),
+        timeLeft: moment.duration(campaign.endDate.getTime() - new Date().getTime()).asDays(),
         donationTypeMap: JSON.stringify(Object.fromEntries(donationTypeMap)), 
         donationAmountMap: JSON.stringify(Object.fromEntries(donationAmountMap)),
     }
