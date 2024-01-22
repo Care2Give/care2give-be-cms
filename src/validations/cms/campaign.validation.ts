@@ -12,7 +12,6 @@ const createCampaign = {
     cents: Joi.number().required(),
     createdBy: Joi.string().required(),
     editedBy: Joi.string().required(),
-    imageNames: Joi.array().items(Joi.string()).required(),
     imageUrls: Joi.array().items(Joi.string()).required(),
   }),
 };
@@ -39,7 +38,6 @@ const updateCampaignById = {
       cents: Joi.number().required(),
       createdBy: Joi.string().required(),
       editedBy: Joi.string().required(),
-      imageNames: Joi.array().items(Joi.string()).required(),
       imageUrls: Joi.array().items(Joi.string()).required(),
     })
     .min(1),
