@@ -237,6 +237,7 @@ async function main() {
       campaignId: campaignOne.id,
       paymentStatus: "PENDING",
       paymentId: "pi_3ORXvkFLvGMxrP6C1sx1cBUe",
+      createdAt: new Date("2023-12-28"),
     },
   });
 
