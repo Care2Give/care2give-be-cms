@@ -167,7 +167,7 @@ const getCampaignInformation = catchAsync(async (req, res) => {
         highestDonation: condensedHighestDonation,
         startDate: campaign.startDate, 
         endDate: campaign.endDate, 
-        timeLeft: campaign.endDate.getUTCMilliseconds() - new Date().getUTCMilliseconds(),
+        timeLeft: Math.floor((campaign.endDate.getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)),
         donationTypeMap: JSON.stringify(Object.fromEntries(donationTypeMap)), 
         donationAmountMap: JSON.stringify(Object.fromEntries(donationAmountMap)),
     }
