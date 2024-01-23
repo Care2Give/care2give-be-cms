@@ -2,12 +2,12 @@ import httpStatus from "http-status";
 import { donationService, paymentService } from "../services";
 import catchAsync from "../utils/catchAsync";
 import { Prisma, DonationPaymentStatus } from "@prisma/client";
-import { PaymentStatus } from "../types/payment";
+import { PaymentStatus } from "../types/payment.types";
 
 // # TODO: Confirm the request attributes.
 const createPaymentIntent = catchAsync(async (req, res) => {
     const { 
-        campaignId,
+        donationCartItems,
         donationType,
         donorFirstName,
         donorLastName,
@@ -15,39 +15,41 @@ const createPaymentIntent = catchAsync(async (req, res) => {
         donorNricA,
         donorNricB,
         donorTrainingPrograms,
-        dollars,
-        cents,
         currency,
     } = req.body;
-    const amount = dollars * 100 + cents;
 
+    const amount = donationCartItems.reduce((total: number, item: any) => total + item.dollars * 100 + item.cents, 0);
     const {clientSecret, paymentIntentId} = await paymentService.createPaymentIntent({
         amount,
         currency,
     });
-
-    const donation: Prisma.DonationCreateInput = {
-        donationType: donationType,
-        donorFirstName: donorFirstName,
-        donorLastName: donorLastName,
-        donorEmail: donorEmail,
-        donorNricA: donorNricA,
-        donorNricB: donorNricB,
-        donorTrainingPrograms: donorTrainingPrograms,
-        currency: currency,
-        dollars: dollars,
-        cents: cents,
-        campaign: {
-            connect: {
-                id: campaignId,
+    
+    const donationPromises = donationCartItems.map(async (item: any) => {
+        const { campaignId, dollars, cents } = item;
+        const donation: Prisma.DonationCreateInput = {
+            donationType: donationType,
+            donorFirstName: donorFirstName,
+            donorLastName: donorLastName,
+            donorEmail: donorEmail,
+            donorNricA: donorNricA,
+            donorNricB: donorNricB,
+            donorTrainingPrograms: donorTrainingPrograms,
+            currency: currency,
+            dollars: dollars,
+            cents: cents,
+            campaign: {
+                connect: {
+                    id: campaignId,
+                },
             },
-        },
-        paymentId: paymentIntentId,
-    };
+            paymentId: paymentIntentId,
+        };
+        const { id } = await donationService.createDonation(donation);
+        return id;
+    });
 
-    const { id } = await donationService.createDonation(donation);
-
-    await paymentService.updatePaymentIntent(paymentIntentId, { metadata: { donationId: id } });
+    const donationIds = await Promise.all(donationPromises);
+    await paymentService.updatePaymentIntent(paymentIntentId, { metadata: {donationIds: JSON.stringify(donationIds)} });
 
     res.status(httpStatus.CREATED).send({ clientSecret });
 });
@@ -58,22 +60,26 @@ const getConfig = catchAsync(async (_, res) => {
 });
 
 const handleWebhookEvent = catchAsync(async (req, res) => {
-    const { paymentStatus, paymentIntentId, donationId } = await paymentService.handleWebhookEvent(req);
-    if (paymentIntentId && donationId) {
+    const { paymentStatus, paymentIntentId, donationIds } = await paymentService.handleWebhookEvent(req);
+    var donationPaymentStatus: DonationPaymentStatus = DonationPaymentStatus.PENDING;
+    if (paymentIntentId && donationIds.length > 0) {
         switch (paymentStatus) {
             case PaymentStatus.SUCCEEDED || PaymentStatus.CREATED:
-                await donationService.updateDonation(donationId, { paymentStatus: DonationPaymentStatus.SUCCEEDED });
+                donationPaymentStatus = DonationPaymentStatus.SUCCEEDED;
                 break;
             case PaymentStatus.FAILED:
-                await donationService.updateDonation(donationId, { paymentStatus: DonationPaymentStatus.FAILED });
+                donationPaymentStatus = DonationPaymentStatus.FAILED;
                 break;
             case PaymentStatus.CANCELLED:
-                await donationService.updateDonation(donationId, { paymentStatus: DonationPaymentStatus.CANCELLED });
+                donationPaymentStatus = DonationPaymentStatus.CANCELLED;
                 break;
             default:
                 break;
         }
     }
+    donationIds.forEach(async (donationId: string) => {
+        await donationService.updateDonation(donationId, { paymentStatus: donationPaymentStatus });
+    });
     res.status(httpStatus.OK).send();
 });
 

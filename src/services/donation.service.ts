@@ -1,7 +1,5 @@
-import { Campaign, CampaignStatus, Donation, Prisma } from "@prisma/client";
+import { Donation, Prisma } from "@prisma/client";
 import prisma from "../client";
-import ApiError from "../utils/ApiError";
-import httpStatus from "http-status";
 
 const createDonation = async (donation: Prisma.DonationCreateInput) => {
   return prisma.donation.create({

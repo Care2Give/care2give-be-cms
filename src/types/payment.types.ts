@@ -24,5 +24,5 @@ export enum PaymentStatus {
 export interface HandleWebhookEventResponse {
     paymentStatus: PaymentStatus;
     paymentIntentId: string | undefined;
-    donationId: string | undefined;
+    donationIds: string[];
 }

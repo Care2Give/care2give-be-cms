@@ -73,7 +73,7 @@ model Donation {
   campaign              Campaign              @relation(fields: [campaignId], references: [id])
   campaignId            String
   paymentStatus         DonationPaymentStatus @default(PENDING)
-  paymentId             String                @unique
+  paymentId             String
 }
 
 enum DonationType {
