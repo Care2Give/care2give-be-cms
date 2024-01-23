@@ -87,7 +87,43 @@ async function main() {
       imageUrls: ["https://i.imgur.com/lQGgBef.jpeg"],
     },
   });
-  console.log({ campaignOne, campaignTwo, campaignThree });
+  const campaignFour = await prisma.campaign.create({
+    data: {
+      status: "INACTIVE",
+      startDate: new Date("2023-12-14"),
+      endDate: new Date("2023-12-12"),
+      title: "Test Campaign Four",
+      description: "",
+      currency: "SGD",
+      dollars: 1000,
+      cents: 0,
+      createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
+      editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
+      imageUrls: ["https://i.imgur.com/lQGgBef.jpeg"],
+    },
+  });
+  const campaignFive = await prisma.campaign.create({
+    data: {
+      status: "ARCHIVED",
+      startDate: new Date("2020-12-14"),
+      endDate: new Date("2020-12-12"),
+      title: "Test Campaign Five",
+      description: "",
+      currency: "SGD",
+      dollars: 1000,
+      cents: 0,
+      createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
+      editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
+      imageUrls: ["https://i.imgur.com/lQGgBef.jpeg"],
+    },
+  });
+  console.log({
+    campaignOne,
+    campaignTwo,
+    campaignThree,
+    campaignFour,
+    campaignFive,
+  });
 
   // SEED CAMPAIGN DONATION AMOUNTS
   const campaignOneDonationAmountOne =

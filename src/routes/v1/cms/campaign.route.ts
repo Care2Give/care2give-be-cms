@@ -9,6 +9,9 @@ const router = express.Router();
 // Retrieves partial campaign details for display on data table
 router.get("/", cmsCampaignController.listCampaigns);
 
+// Retrieves partial ARCHIVED campaign details for display on data table
+router.get("/archive", cmsCampaignController.listArchivedCampaigns);
+
 // Requires full campaign details
 router.post(
   "/",

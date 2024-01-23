@@ -4,7 +4,6 @@ import httpStatus from "http-status";
 import cmsCampaignService from "../../services/cms/campaign.service";
 import s3 from "../../aws/s3Client";
 import ApiError from "../../utils/ApiError";
-import { FIVE_MEGABYTES } from "../../constants";
 
 const listCampaigns = catchAsync(async (req, res) => {
   const campaigns = await cmsCampaignService.listCampaigns();
@@ -51,10 +50,28 @@ const uploadSingleImage = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send({ url });
 });
 
+const listArchivedCampaigns = catchAsync(async (req, res) => {
+  const campaigns = await cmsCampaignService.listArchivedCampaigns();
+  const userId = campaigns.map((campaign) => campaign.editedBy);
+  const users = await clerkClient.users.getUserList({
+    userId,
+  });
+  const result = campaigns.map((campaign) => {
+    return {
+      ...campaign,
+      userImageUrl: users.find((user) => user.id === campaign.editedBy)
+        ?.imageUrl,
+      firstName: users.find((user) => user.id === campaign.editedBy)?.firstName,
+    };
+  });
+  res.status(httpStatus.OK).send(result);
+});
+
 export default {
   listCampaigns,
   createCampaign,
   queryCampaign,
   updateCampaign,
   uploadSingleImage,
+  listArchivedCampaigns,
 };
