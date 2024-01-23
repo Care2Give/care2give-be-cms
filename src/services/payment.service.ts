@@ -1,7 +1,7 @@
 import ApiError from "../utils/ApiError";
 import httpStatus from "http-status";
 import Stripe from 'stripe';
-import { HandleWebhookEventResponse, CreatePaymentIntentRequest, CreatePaymentIntentResponse, PaymentStatus } from "../types/payment";
+import { HandleWebhookEventResponse, CreatePaymentIntentRequest, CreatePaymentIntentResponse, PaymentStatus } from "../types/payment.types";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
@@ -71,10 +71,10 @@ const handleWebhookEvent = async (req: any): Promise<HandleWebhookEventResponse>
             paymentStatus = PaymentStatus.CANCELLED;
             break;
         default:
-            return { paymentStatus: paymentStatus, paymentIntentId: undefined, donationId: undefined};
+            return { paymentStatus: paymentStatus, paymentIntentId: undefined, donationIds: []};
     }
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
-    return { paymentStatus: paymentStatus, paymentIntentId: paymentIntent.id, donationId: paymentIntent.metadata.donationId };
+    return { paymentStatus: paymentStatus, paymentIntentId: paymentIntent.id, donationIds: JSON.parse(paymentIntent.metadata.donationIds) };
 }
 export default {
     getConfig,
