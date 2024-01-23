@@ -4,6 +4,7 @@ import httpStatus from "http-status";
 import { DurationFilter } from "../../types/DurationFilter";
 import { DonationType } from "@prisma/client";
 import { assert } from "console";
+import moment from "moment";
 
 const listCampaigns = catchAsync(async (req, res) => {
     const { filter } = req.query;
@@ -160,6 +161,8 @@ const getCampaignInformation = catchAsync(async (req, res) => {
           }
         : null;
 
+    const timeLeft = moment.duration(moment(campaign.endDate).diff(new Date()));
+        
     const campaignInformation = {
         title: campaign.title,
         currentAmount: campaign.donations
@@ -167,7 +170,7 @@ const getCampaignInformation = catchAsync(async (req, res) => {
         highestDonation: condensedHighestDonation,
         startDate: campaign.startDate, 
         endDate: campaign.endDate, 
-        timeLeft: campaign.endDate.getUTCMilliseconds() - new Date().getUTCMilliseconds(),
+        timeLeft: Math.floor(timeLeft.asDays()),
         donationTypeMap: JSON.stringify(Object.fromEntries(donationTypeMap)), 
         donationAmountMap: JSON.stringify(Object.fromEntries(donationAmountMap)),
     }
