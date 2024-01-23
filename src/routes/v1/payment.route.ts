@@ -5,11 +5,8 @@ import { paymentValidation } from "../../validations";
 
 const router = express.Router();
 
-router.get(
-  "/config",
-  paymentController.getConfig
-);
-  
+router.get("/config", paymentController.getConfig);
+
 router.post(
   "/createPaymentIntent",
   validate(paymentValidation.createPaymentIntent),
@@ -18,7 +15,7 @@ router.post(
 
 router.post(
   "/webhook",
-  express.raw({ type: 'application/json' }),
+  express.raw({ type: "application/json" }),
   paymentController.handleWebhookEvent
 );
 
