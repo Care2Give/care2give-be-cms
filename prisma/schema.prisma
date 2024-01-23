@@ -24,7 +24,7 @@ model Campaign {
   cents           Int                      @default(0)
   createdBy       String
   editedBy        String
-  imageUrl        String[]
+  imageUrls       String[]
   donationAmounts CampaignDonationAmount[]
   donations       Donation[]
 }
@@ -64,7 +64,7 @@ model Donation {
   donorFirstName        String?
   donorLastName         String?
   donorEmail            String?
-  donorNricA            String?
+  donorNricA            String?               
   donorNricB            String?               @db.VarChar(4)
   donorTrainingPrograms String[]
   currency              String                @default("SGD") @db.VarChar(3)

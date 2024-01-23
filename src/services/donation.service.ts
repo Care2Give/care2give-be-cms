@@ -3,7 +3,7 @@ import prisma from "../client";
 
 const createDonation = async (donation: Prisma.DonationCreateInput) => {
   return prisma.donation.create({
-    data: donation
+    data: donation,
   });
 };
 
@@ -49,14 +49,17 @@ const findDonationById = async (id: string): Promise<Donation | null> => {
   return prisma.donation.findUnique({ where: { id } });
 };
 
-const updateDonation = async ( id: string, updatedDonation: Prisma.DonationUpdateInput): Promise<Donation | null> => {
+const updateDonation = async (
+  id: string,
+  updatedDonation: Prisma.DonationUpdateInput
+): Promise<Donation | null> => {
   return prisma.donation.update({ where: { id: id }, data: updatedDonation });
-}
+};
 
 export default {
   createDonation,
   listDonations,
   queryDonations,
   findDonationById,
-  updateDonation
+  updateDonation,
 };

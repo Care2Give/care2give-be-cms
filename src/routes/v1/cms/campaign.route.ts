@@ -6,18 +6,36 @@ import campaignValidation from "../../../validations/cms/campaign.validation";
 
 const router = express.Router();
 
+// Retrieves partial campaign details for display on data table
 router.get("/", cmsCampaignController.listCampaigns);
 
+// Retrieves partial ARCHIVED campaign details for display on data table
+router.get("/archive", cmsCampaignController.listArchivedCampaigns);
+
+// Requires full campaign details
 router.post(
   "/",
-  upload.array("imageUrl"),
   validate(campaignValidation.createCampaign),
   cmsCampaignController.createCampaign
 );
 
+router.post(
+  "/images",
+  upload.single("image"),
+  cmsCampaignController.uploadSingleImage
+);
+
+// GET: Retrieves full campaign details
+// UPDATE: Requires full campign details
 router
   .route("/:id")
-  .get(cmsCampaignController.queryCampaign)
-  .patch(cmsCampaignController.updateCampaign);
+  .get(
+    validate(campaignValidation.queryCampaignById),
+    cmsCampaignController.queryCampaign
+  )
+  .patch(
+    validate(campaignValidation.updateCampaignById),
+    cmsCampaignController.updateCampaign
+  );
 
 export default router;

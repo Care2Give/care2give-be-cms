@@ -17,7 +17,7 @@ import {
 const listCampaigns = async (): Promise<ListCampaignsPayload[]> => {
   return prisma.campaign.findMany({
     where: {
-      status: "ACTIVE",
+      status: CampaignStatus.ACTIVE,
     },
     select: listCampaignsSelect,
     orderBy: {

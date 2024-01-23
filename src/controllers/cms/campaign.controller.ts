@@ -24,15 +24,7 @@ const listCampaigns = catchAsync(async (req, res) => {
 
 //TODO: Ensure atomicity: in event of fail on Prisma, should not upload to S3, vice-versa
 const createCampaign = catchAsync(async (req, res) => {
-  let data = req.body;
-  if (req.files) {
-    const imageUrl = await s3.sendManyToS3(req.files as Express.Multer.File[]);
-    data = {
-      ...data,
-      imageUrl: imageUrl,
-    };
-  }
-  const campaign = await cmsCampaignService.createCampaign(data);
+  const campaign = await cmsCampaignService.createCampaign(req.body);
   res.status(httpStatus.CREATED).send(campaign);
 });
 
@@ -50,9 +42,36 @@ const updateCampaign = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(campaign);
 });
 
+const uploadSingleImage = catchAsync(async (req, res) => {
+  if (!req.file) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "File is required");
+  }
+  const url = await s3.sendToS3(req.file);
+  res.status(httpStatus.CREATED).send({ url });
+});
+
+const listArchivedCampaigns = catchAsync(async (req, res) => {
+  const campaigns = await cmsCampaignService.listArchivedCampaigns();
+  const userId = campaigns.map((campaign) => campaign.editedBy);
+  const users = await clerkClient.users.getUserList({
+    userId,
+  });
+  const result = campaigns.map((campaign) => {
+    return {
+      ...campaign,
+      userImageUrl: users.find((user) => user.id === campaign.editedBy)
+        ?.imageUrl,
+      firstName: users.find((user) => user.id === campaign.editedBy)?.firstName,
+    };
+  });
+  res.status(httpStatus.OK).send(result);
+});
+
 export default {
   listCampaigns,
   createCampaign,
   queryCampaign,
   updateCampaign,
+  uploadSingleImage,
+  listArchivedCampaigns,
 };

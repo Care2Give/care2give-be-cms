@@ -51,12 +51,12 @@ const createPaymentIntent = catchAsync(async (req, res) => {
     const donationIds = await Promise.all(donationPromises);
     await paymentService.updatePaymentIntent(paymentIntentId, { metadata: {donationIds: JSON.stringify(donationIds)} });
 
-    res.status(httpStatus.CREATED).send({ clientSecret });
+  res.status(httpStatus.CREATED).send({ clientSecret });
 });
 
 const getConfig = catchAsync(async (_, res) => {
-    const publishable_key = await paymentService.getConfig();
-    res.status(httpStatus.OK).send({ publishable_key });
+  const publishable_key = await paymentService.getConfig();
+  res.status(httpStatus.OK).send({ publishable_key });
 });
 
 const handleWebhookEvent = catchAsync(async (req, res) => {
@@ -84,7 +84,7 @@ const handleWebhookEvent = catchAsync(async (req, res) => {
 });
 
 export default {
-    createPaymentIntent,
-    getConfig,
-    handleWebhookEvent
+  createPaymentIntent,
+  getConfig,
+  handleWebhookEvent,
 };

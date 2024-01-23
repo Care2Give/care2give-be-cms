@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { CampaignStatus, Prisma } from "@prisma/client";
 import prisma from "../../client";
 import {
   CmsCreateCampaignPayload,
@@ -8,6 +8,16 @@ import {
 
 const listCampaigns = async (): Promise<CmsListCampaignsPayload[]> => {
   return prisma.campaign.findMany({
+    where: {
+      OR: [
+        {
+          status: CampaignStatus.ACTIVE,
+        },
+        {
+          status: CampaignStatus.INACTIVE,
+        },
+      ],
+    },
     select: cmsListCampaignsSelect,
     orderBy: {
       createdAt: "desc",
@@ -46,9 +56,22 @@ const updateCampaign = async (
   });
 };
 
+const listArchivedCampaigns = async (): Promise<CmsListCampaignsPayload[]> => {
+  return prisma.campaign.findMany({
+    where: {
+      status: CampaignStatus.ARCHIVED,
+    },
+    select: cmsListCampaignsSelect,
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+};
+
 export default {
   listCampaigns,
   createCampaign,
   queryCampaign,
   updateCampaign,
+  listArchivedCampaigns,
 };

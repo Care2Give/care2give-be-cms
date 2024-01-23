@@ -1,6 +1,37 @@
 import { PrismaClient } from "@prisma/client";
-import Encrypter from "../src/utils/Encrypter";
 import "dotenv/config";
+import crypto from "crypto";
+
+class Encrypter {
+  algorithm: string;
+  key: Buffer;
+
+  constructor(encryptionKey: string) {
+    this.algorithm = "aes-192-cbc";
+    this.key = crypto.scryptSync(encryptionKey, "salt", 24);
+  }
+
+  encrypt(clearText: string) {
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
+    const encrypted = cipher.update(clearText, "utf8", "hex");
+    return [
+      encrypted + cipher.final("hex"),
+      Buffer.from(iv).toString("hex"),
+    ].join("|");
+  }
+
+  dencrypt(encryptedText: string) {
+    const [encrypted, iv] = encryptedText.split("|");
+    if (!iv) throw new Error("IV not found");
+    const decipher = crypto.createDecipheriv(
+      this.algorithm,
+      this.key,
+      Buffer.from(iv, "hex")
+    );
+    return decipher.update(encrypted, "hex", "utf8") + decipher.final("utf8");
+  }
+}
 
 const prisma = new PrismaClient();
 
@@ -19,7 +50,7 @@ async function main() {
       cents: 45,
       createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
       editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
-      imageUrl: [
+      imageUrls: [
         "https://i.imgur.com/Hzokhnc.jpeg",
         "https://i.imgur.com/3E1zOoW.jpeg",
         "https://i.imgur.com/5iRPHZe.jpeg",
@@ -38,7 +69,7 @@ async function main() {
       cents: 0,
       createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
       editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
-      imageUrl: ["https://i.imgur.com/XnXiEd3.jpeg"],
+      imageUrls: ["https://i.imgur.com/XnXiEd3.jpeg"],
     },
   });
   const campaignThree = await prisma.campaign.create({
@@ -53,10 +84,46 @@ async function main() {
       cents: 0,
       createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
       editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
-      imageUrl: [],
+      imageUrls: ["https://i.imgur.com/lQGgBef.jpeg"],
     },
   });
-  console.log({ campaignOne, campaignTwo, campaignThree });
+  const campaignFour = await prisma.campaign.create({
+    data: {
+      status: "INACTIVE",
+      startDate: new Date("2023-12-14"),
+      endDate: new Date("2023-12-12"),
+      title: "Test Campaign Four",
+      description: "",
+      currency: "SGD",
+      dollars: 1000,
+      cents: 0,
+      createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
+      editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
+      imageUrls: ["https://i.imgur.com/lQGgBef.jpeg"],
+    },
+  });
+  const campaignFive = await prisma.campaign.create({
+    data: {
+      status: "ARCHIVED",
+      startDate: new Date("2020-12-14"),
+      endDate: new Date("2020-12-12"),
+      title: "Test Campaign Five",
+      description: "",
+      currency: "SGD",
+      dollars: 1000,
+      cents: 0,
+      createdBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
+      editedBy: "user_2aTuEiGpSymDZEOLf8f71iKsvrB",
+      imageUrls: ["https://i.imgur.com/lQGgBef.jpeg"],
+    },
+  });
+  console.log({
+    campaignOne,
+    campaignTwo,
+    campaignThree,
+    campaignFour,
+    campaignFive,
+  });
 
   // SEED CAMPAIGN DONATION AMOUNTS
   const campaignOneDonationAmountOne =
@@ -237,6 +304,7 @@ async function main() {
       campaignId: campaignOne.id,
       paymentStatus: "PENDING",
       paymentId: "pi_3ORXvkFLvGMxrP6C1sx1cBUe",
+      createdAt: new Date("2023-12-28"),
     },
   });
 

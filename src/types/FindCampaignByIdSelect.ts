@@ -8,7 +8,7 @@ export const findCampaignByIdSelect = {
   description: true,
   dollars: true,
   cents: true,
-  imageUrl: true,
+  imageUrls: true,
   donations: {
     select: {
       dollars: true,

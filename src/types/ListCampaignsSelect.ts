@@ -7,7 +7,7 @@ export const listCampaignsSelect = {
   title: true,
   dollars: true,
   cents: true,
-  imageUrl: true,
+  imageUrls: true,
   donations: {
     select: {
       dollars: true,
