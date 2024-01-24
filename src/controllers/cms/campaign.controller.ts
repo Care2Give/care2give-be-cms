@@ -22,9 +22,10 @@ const listCampaigns = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(result);
 });
 
-//TODO: Ensure atomicity: in event of fail on Prisma, should not upload to S3, vice-versa
-const createCampaign = catchAsync(async (req, res) => {
-  const campaign = await cmsCampaignService.createCampaign(req.body);
+const createCampaignAndDonationAmounts = catchAsync(async (req, res) => {
+  const campaign = await cmsCampaignService.createCampaignAndDonationAmounts(
+    req.body
+  );
   res.status(httpStatus.CREATED).send(campaign);
 });
 
@@ -69,7 +70,7 @@ const listArchivedCampaigns = catchAsync(async (req, res) => {
 
 export default {
   listCampaigns,
-  createCampaign,
+  createCampaignAndDonationAmounts,
   queryCampaign,
   updateCampaign,
   uploadSingleImage,

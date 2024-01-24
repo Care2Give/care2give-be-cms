@@ -1,7 +1,5 @@
 import { Prisma } from "@prisma/client";
 
-export type CmsCreateCampaignPayload = Prisma.CampaignGetPayload<{}>;
-
 export const cmsListCampaignsSelect = {
   id: true,
   startDate: true,

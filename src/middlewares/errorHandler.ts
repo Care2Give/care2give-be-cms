@@ -22,6 +22,7 @@ const errorHandler = (
   } else {
     res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: err.message });
   }
+  console.error(`[ERROR]: ${err.message}`);
 };
 
 export default errorHandler;

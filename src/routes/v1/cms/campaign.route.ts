@@ -15,8 +15,8 @@ router.get("/archive", cmsCampaignController.listArchivedCampaigns);
 // Requires full campaign details
 router.post(
   "/",
-  validate(campaignValidation.createCampaign),
-  cmsCampaignController.createCampaign
+  validate(campaignValidation.createCampaignAndDonationAmounts),
+  cmsCampaignController.createCampaignAndDonationAmounts
 );
 
 router.post(
