@@ -1,7 +1,6 @@
 import { CampaignStatus, Prisma } from "@prisma/client";
 import prisma from "../../client";
 import {
-  CmsCreateCampaignPayload,
   CmsListCampaignsPayload,
   cmsListCampaignsSelect,
 } from "../../types/cms.types";
@@ -25,12 +24,20 @@ const listCampaigns = async (): Promise<CmsListCampaignsPayload[]> => {
   });
 };
 
-const createCampaign = async (
+const createCampaignAndDonationAmounts = async (
   payload: Prisma.CampaignCreateInput
-): Promise<CmsCreateCampaignPayload> => {
-  return prisma.campaign.create({
-    data: payload,
+) => {
+  const donationAmounts = payload.donationAmounts;
+  delete payload.donationAmounts;
+  const campaign = await prisma.campaign.create({
+    data: {
+      ...payload,
+      donationAmounts: {
+        create: donationAmounts,
+      },
+    },
   });
+  return await queryCampaign(campaign.id);
 };
 
 const queryCampaign = async (id: string) => {
@@ -48,11 +55,21 @@ const updateCampaign = async (
   id: string,
   payload: Prisma.CampaignUpdateInput
 ) => {
+  const donationAmounts = payload.donationAmounts;
+  delete payload.donationAmounts;
   return prisma.campaign.update({
     where: {
       id,
     },
-    data: payload,
+    data: {
+      ...payload,
+      donationAmounts: {
+        deleteMany: {
+          campaignId: id,
+        },
+        create: donationAmounts,
+      },
+    },
   });
 };
 
@@ -70,7 +87,7 @@ const listArchivedCampaigns = async (): Promise<CmsListCampaignsPayload[]> => {
 
 export default {
   listCampaigns,
-  createCampaign,
+  createCampaignAndDonationAmounts,
   queryCampaign,
   updateCampaign,
   listArchivedCampaigns,

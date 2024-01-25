@@ -34,7 +34,7 @@ class S3 {
     const path = randomUUID(); // images will be overriden if file name is same
     const url = this._constructImageUrl(path);
     console.log(
-      `Sending to S3 bucket [${this.bucketName}]: path [${path}] with contentType [${mimetype}]`
+      `[LOG] Sending to S3 bucket [${this.bucketName}]: path [${path}] with contentType [${mimetype}]`
     );
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
@@ -45,7 +45,7 @@ class S3 {
     });
     await s3.client.send(command);
     console.log(
-      `Successfully sent to S3 bucket [${this.bucketName}]: path [${path}]`
+      `[LOG] Successfully sent to S3 bucket [${this.bucketName}]: path [${path}]`
     );
     return url;
   }
