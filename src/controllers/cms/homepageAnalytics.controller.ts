@@ -3,6 +3,7 @@ import httpStatus from "http-status";
 import cmsDonationService from "../../services/cms/donation.service";
 import { $Enums } from "@prisma/client";
 import homeAnalyticsService from "../../services/cms/homeAnalytics.service";
+import ApiError from "../../utils/ApiError";
 
 // helper function to filter the donations by time
 const getValidDonations = async (filter: string) => {
@@ -32,10 +33,12 @@ const getValidDonations = async (filter: string) => {
 // gets the total donations across all campaigns
 const totalDonationAmount = catchAsync(async (req, res) => {
   const { filter } = req.query;
-  const totalAmount = await homeAnalyticsService.totalDonationAmount(
+  const donation = await homeAnalyticsService.totalDonationAmount(
     filter as string
   );
-  res.status(httpStatus.OK).send({ totalAmount: totalAmount._sum.dollars });
+  const totalAmount = donation?._sum?.dollars || 0;
+
+  res.status(httpStatus.OK).send({ totalAmount });
 });
 
 // gets the total number of donations across all campaigns
@@ -48,10 +51,12 @@ const totalDonorNumber = catchAsync(async (req, res) => {
 // gets the highest amount donated in a single donation across all campaigns
 const highestDonationAmount = catchAsync(async (req, res) => {
   const { filter } = req.query;
-  const highestAmount = await homeAnalyticsService.highestDonationAmount(
+  const donation = await homeAnalyticsService.highestDonationAmount(
     filter as string
   );
-  res.status(httpStatus.OK).send({ highestAmount: highestAmount._max.dollars });
+  const highestAmount = donation?._max?.dollars || 0;
+
+  res.status(httpStatus.OK).send({ highestAmount });
 });
 
 // gets the most popular campaign by the number of donors
@@ -63,7 +68,10 @@ const mostPopularCampaign = catchAsync(async (req, res) => {
   const donations = await getValidDonations(filter as string);
 
   if (donations.length === 0) {
-    throw new Error("no donations have been made" + filter);
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      `No donations have been made ${filter}`
+    );
   }
 
   const campaignMap = new Map<string, number>();
@@ -106,7 +114,10 @@ const mostPopularAmount = catchAsync(async (req, res) => {
   const donations = await getValidDonations(filter as string);
 
   if (donations.length === 0) {
-    throw new Error("no donations have been made" + filter);
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      `No donations have been made ${filter}`
+    );
   }
 
   const amountMap = new Map<number, number>();
@@ -120,7 +131,10 @@ const mostPopularAmount = catchAsync(async (req, res) => {
       if (currentVal !== undefined) {
         amountMap.set(donationAmount, currentVal + 1);
       } else {
-        throw new Error("Amount is undefined");
+        throw new ApiError(
+          httpStatus.NOT_FOUND,
+          `No donations have been made ${filter}`
+        );
       }
     } else {
       amountMap.set(donationAmount, 1);
