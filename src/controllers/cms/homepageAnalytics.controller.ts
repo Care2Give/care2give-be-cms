@@ -1,34 +1,6 @@
 import catchAsync from "../../utils/catchAsync";
 import httpStatus from "http-status";
-import cmsDonationService from "../../services/cms/donation.service";
-import { $Enums } from "@prisma/client";
 import homeAnalyticsService from "../../services/cms/homeAnalytics.service";
-import ApiError from "../../utils/ApiError";
-
-// helper function to filter the donations by time
-const getValidDonations = async (filter: string) => {
-  return (await cmsDonationService.listDonations()).filter((donation) => {
-    const currentTime = new Date().getTime();
-    const donationAge = new Date(donation.createdAt).getTime();
-    const diffInDays = Math.round(
-      (currentTime - donationAge) / (1000 * 60 * 60 * 24)
-    );
-
-    if (filter === "alltime") {
-      return donation;
-    } else if (filter === "yearly" && diffInDays <= 365) {
-      return donation;
-    } else if (filter === "monthly" && diffInDays <= 30) {
-      return donation;
-    } else if (filter === "weekly" && diffInDays <= 7) {
-      return donation;
-    } else if (filter === "daily" && diffInDays <= 1) {
-      return donation;
-    } else {
-      return;
-    }
-  });
-};
 
 // gets the total donations across all campaigns
 const totalDonationAmount = catchAsync(async (req, res) => {
