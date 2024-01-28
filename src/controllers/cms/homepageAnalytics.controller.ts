@@ -65,43 +65,13 @@ const mostPopularCampaign = catchAsync(async (req, res) => {
   const { filter } = req.query;
 
   // filters for the donations according to the time parameter
-  const donations = await getValidDonations(filter as string);
+  const campaignID = await homeAnalyticsService.mostPopularCampaignID(filter as string);
 
-  if (donations.length === 0) {
-    throw new ApiError(
-      httpStatus.NOT_FOUND,
-      `No donations have been made ${filter}`
-    );
-  }
-
-  const campaignMap = new Map<string, number>();
-
-  // count the number of donations for each campaign
-  donations.forEach((donation) => {
-    if (campaignMap.has(donation.campaign.id)) {
-      const currentVal = campaignMap.get(donation.campaign.id);
-      if (currentVal !== undefined) {
-        campaignMap.set(donation.campaign.id, currentVal + 1);
-      } else {
-        throw new Error("Title is undefined");
-      }
-    } else {
-      campaignMap.set(donation.campaign.id, 1);
-    }
-  });
-
-  const mostPopularCampaign = [...campaignMap.entries()].reduce((a, e) =>
-    e[1] > a[1] ? e : a
-  );
-
-  // get the campaign with the highest number of donations
-  const campaignTitle = donations.find((donation) => {
-    return donation.campaign.id === mostPopularCampaign[0];
-  })?.campaign.title;
+  const campaignTitle = await homeAnalyticsService.mostPopularCampaignTitle(campaignID[0].campaignId);
 
   res.status(httpStatus.OK).send({
-    campaignTitle: campaignTitle,
-    numberOfDonors: mostPopularCampaign[1],
+    campaignTitle: campaignTitle?.title || "",
+    numberOfDonors: campaignID[0]?._count?.campaignId || 0,
   });
 });
 
@@ -111,64 +81,22 @@ const mostPopularAmount = catchAsync(async (req, res) => {
   const { filter } = req.query;
 
   // filters for the donations according to the time parameter
-  const donations = await getValidDonations(filter as string);
-
-  if (donations.length === 0) {
-    throw new ApiError(
-      httpStatus.NOT_FOUND,
-      `No donations have been made ${filter}`
-    );
-  }
-
-  const amountMap = new Map<number, number>();
-
-  // count the number of donation amounts across all campaigns
-  donations.forEach((donation) => {
-    const donationAmount = donation.dollars + donation.cents / 100;
-
-    if (amountMap.has(donationAmount)) {
-      const currentVal = amountMap.get(donationAmount);
-      if (currentVal !== undefined) {
-        amountMap.set(donationAmount, currentVal + 1);
-      } else {
-        throw new ApiError(
-          httpStatus.NOT_FOUND,
-          `No donations have been made ${filter}`
-        );
-      }
-    } else {
-      amountMap.set(donationAmount, 1);
-    }
-  });
-
-  const mostPopularAmount = [...amountMap.entries()].reduce((a, e) =>
-    e[1] > a[1] ? e : a
-  );
+  const mostPopularAmount = await homeAnalyticsService.mostPopularAmount(filter as string);
 
   res.status(httpStatus.OK).send({
-    mostPopularAmount: mostPopularAmount[0].toString(),
-    numberOfDonors: mostPopularAmount[1],
+    mostPopularAmount: mostPopularAmount[0]?.dollars || 0,
+    numberOfDonors: mostPopularAmount[0]?._count?.dollars || 0,
   });
 });
 
 // gets the number of each type of donation
 const typesOfDonations = catchAsync(async (_, res) => {
-  const donations = await cmsDonationService.listDonations();
+  const types = await homeAnalyticsService.typesOfDonations();
 
-  const typeOfDonationsMap = new Map<$Enums.DonationType, number>();
+  const typeOfDonationsMap = new Map<string, number>();
 
-  // count the number of donation amounts across all campaigns
-  donations.forEach((donation) => {
-    if (typeOfDonationsMap.has(donation.donationType)) {
-      const currentVal = typeOfDonationsMap.get(donation.donationType);
-      if (currentVal !== undefined) {
-        typeOfDonationsMap.set(donation.donationType, currentVal + 1);
-      } else {
-        throw new Error("Amount is undefined");
-      }
-    } else {
-      typeOfDonationsMap.set(donation.donationType, 1);
-    }
+  types.forEach((type) => {
+    typeOfDonationsMap.set(type.donationType, type._count.donationType);
   });
 
   res
@@ -185,11 +113,7 @@ const dailyDonations = catchAsync(async (req, res) => {
   const secondDate = new Date(second as string);
 
   // filters for the donations according to the time parameter
-  const donations = (await cmsDonationService.listDonations()).filter(
-    (donation) => {
-      return donation.createdAt > firstDate && donation.createdAt < secondDate;
-    }
-  );
+  const donations = await homeAnalyticsService.getDonationsBetweenDates(firstDate, secondDate);
 
   const dateMap = new Map<string, number>();
 
