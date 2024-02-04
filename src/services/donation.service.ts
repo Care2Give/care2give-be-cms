@@ -21,14 +21,15 @@ const queryDonations = async <Key extends keyof Donation>(
   },
   keys: Key[] = [
     "id",
-    "amount",
+    "dollars",
+    "cents",
     "currency",
-    "donorName",
+    "donationType",
+    "donorFirstName",
+    "donorLastName",
     "donorEmail",
-    "donorMessage",
     "campaignId",
     "createdAt",
-    "updatedAt",
   ] as Key[]
 ): Promise<Pick<Donation, Key>[]> => {
   const page = options.page ?? 1;
@@ -38,7 +39,7 @@ const queryDonations = async <Key extends keyof Donation>(
   const donations = await prisma.donation.findMany({
     where: filter,
     select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {}),
-    skip: page * limit,
+    skip: (page-1) * limit,
     take: limit,
     orderBy: sortBy ? { [sortBy]: sortType } : undefined,
   });

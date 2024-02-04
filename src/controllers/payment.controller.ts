@@ -1,8 +1,9 @@
 import httpStatus from "http-status";
 import { donationService, paymentService } from "../services";
 import catchAsync from "../utils/catchAsync";
-import { Prisma, DonationPaymentStatus } from "@prisma/client";
+import { Prisma, DonationPaymentStatus, DonationType } from "@prisma/client";
 import { PaymentStatus } from "../types/payment.types";
+import emailEditorService from "../services/cms/emailEditor.service";
 
 // # TODO: Confirm the request attributes.
 const createPaymentIntent = catchAsync(async (req, res) => {
@@ -59,12 +60,34 @@ const getConfig = catchAsync(async (_, res) => {
   res.status(httpStatus.OK).send({ publishable_key });
 });
 
+const sendDonationSuccessEmail = async (donationIds: string[]) => {
+  const templateEmail = await emailEditorService.getLatestEmail();
+  if (templateEmail === null) {
+    console.log(`[LOG] Failed to send confirmation email for donations ${donationIds}, no template email found!`);
+    return;
+  }
+
+  const donations = await donationService.queryDonations({id: {in: donationIds}}, {limit: donationIds.length});
+  const donorEmails = donations
+    .filter(x => x.donationType !== DonationType.ANONYMOUS)
+    .reduce((currentSet, donation) => {
+      currentSet.add(donation.donorEmail as string);
+      return currentSet;
+    }, new Set<string>());
+
+  donorEmails.forEach((email) => {
+    emailEditorService.sendEmail([email], templateEmail.subject, templateEmail.content)
+  });
+}
+
 const handleWebhookEvent = catchAsync(async (req, res) => {
     const { paymentStatus, paymentIntentId, donationIds } = await paymentService.handleWebhookEvent(req);
     var donationPaymentStatus: DonationPaymentStatus = DonationPaymentStatus.PENDING;
     if (paymentIntentId && donationIds.length > 0) {
         switch (paymentStatus) {
             case PaymentStatus.SUCCEEDED || PaymentStatus.CREATED:
+                if (paymentStatus === PaymentStatus.SUCCEEDED)
+                  sendDonationSuccessEmail(donationIds);
                 donationPaymentStatus = DonationPaymentStatus.SUCCEEDED;
                 break;
             case PaymentStatus.FAILED:
