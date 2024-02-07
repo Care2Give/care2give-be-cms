@@ -21,7 +21,9 @@ class Encrypter {
 
   dencrypt(encryptedText: string) {
     const [encrypted, iv] = encryptedText.split("|");
-    if (!iv) throw new Error("IV not found");
+    if (!iv) {
+      return "Unable to decrypt";
+    }
     const decipher = crypto.createDecipheriv(
       this.algorithm,
       this.key,
