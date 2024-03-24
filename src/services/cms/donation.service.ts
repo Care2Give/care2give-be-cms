@@ -4,6 +4,8 @@ import {
   GetCampaignNamesPayload,
   getCampaignNamesSelect,
 } from "../../types/GetCampaignNamesSelect";
+import ApiError from "../../utils/ApiError";
+import httpStatus from "http-status";
 
 const listDonations = async (): Promise<
   Array<Prisma.DonationGetPayload<{ include: { campaign: true } }>>
@@ -37,6 +39,12 @@ const exportDonations = async ({
 }: ExportDonationsParams): Promise<
   Array<Prisma.DonationGetPayload<{ include: { campaign: true } }>>
 > => {
+  if (startDate > endDate) {
+    throw new ApiError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      "Start date is later than end date"
+    );
+  }
   // Filter the day's records
   if (startDate.getTime() === endDate.getTime()) {
     endDate.setHours(23);
