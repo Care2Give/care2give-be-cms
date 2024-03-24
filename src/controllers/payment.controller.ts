@@ -5,6 +5,7 @@ import { Prisma, DonationPaymentStatus, DonationType } from "@prisma/client";
 import { PaymentStatus } from "../types/payment.types";
 import emailEditorService from "../services/cms/emailEditor.service";
 import Encrypter from "../utils/Encrypter";
+import logger from "../config/logger";
 
 // # TODO: Confirm the request attributes.
 const createPaymentIntent = catchAsync(async (req, res) => {
@@ -72,7 +73,7 @@ const getConfig = catchAsync(async (_, res) => {
 const sendDonationSuccessEmail = async (donationIds: string[]) => {
   const templateEmail = await emailEditorService.getLatestEmail();
   if (templateEmail === null) {
-    console.log(
+    logger.info(
       `[LOG] Failed to send confirmation email for donations ${donationIds}, no template email found!`
     );
     return;
