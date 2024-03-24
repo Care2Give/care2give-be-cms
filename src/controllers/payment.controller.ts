@@ -19,6 +19,7 @@ const createPaymentIntent = catchAsync(async (req, res) => {
     donorTrainingPrograms,
     currency,
   } = req.body;
+
   const encrypter = new Encrypter(process.env.ENCRYPTION_SECRET as string);
 
   const amount = donationCartItems.reduce(
@@ -38,7 +39,7 @@ const createPaymentIntent = catchAsync(async (req, res) => {
       donorFirstName: donorFirstName,
       donorLastName: donorLastName,
       donorEmail: donorEmail,
-      donorNricA: encrypter.encrypt(donorNricA),
+      donorNricA: donorNricA && encrypter.encrypt(donorNricA),
       donorNricB: donorNricB,
       donorTrainingPrograms: donorTrainingPrograms,
       currency: currency,
