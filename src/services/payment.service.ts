@@ -100,7 +100,7 @@ const handleWebhookEvent = async (
   return {
     paymentStatus: paymentStatus,
     paymentIntentId: paymentIntent.id,
-    donationIds: JSON.parse(paymentIntent.metadata.donationIds),
+    donationIds: paymentIntent.metadata.donationIds ? JSON.parse(paymentIntent.metadata.donationIds) : [],
   };
 };
 export default {
