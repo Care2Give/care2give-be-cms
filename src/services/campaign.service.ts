@@ -33,7 +33,7 @@ const findCampaignById = async (
   id: string
 ): Promise<FindCampaignByIdPayload | null> => {
   return prisma.campaign.findUnique({
-    where: { id },
+    where: { id, status: CampaignStatus.ACTIVE },
     select: findCampaignByIdSelect,
   });
 };
